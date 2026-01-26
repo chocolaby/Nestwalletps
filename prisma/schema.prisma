@@ -1,0 +1,240 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  passwordHash String  @map("password_hash")
+  role        String @default("USER")
+  kycStatus   String @default("PENDING") @map("kyc_status")
+  twoFactorSecret String? @map("two_factor_secret")
+  twoFactorEnabled Boolean @default(false) @map("two_factor_enabled")
+  isFrozen    Boolean @default(false) @map("is_frozen")
+  frozenReason String? @map("frozen_reason")
+  frozenAt    DateTime? @map("frozen_at")
+  frozenBy    String? @map("frozen_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  // 关联
+  wallets     Wallet[]
+  kycDocuments KycDocument[]
+  transactions Transaction[]
+  siemEvents  SiemEvent[]
+  fiatOrders  FiatOrder[]
+  notifications Notification[]
+  
+  @@map("users")
+}
+
+// 钱包表
+model Wallet {
+  id        String     @id @default(uuid())
+  userId    String     @map("user_id")
+  address   String     @unique
+  type      String
+  privateKeyEncrypted String? @map("private_key_encrypted") // 仅托管钱包
+  createdAt DateTime   @default(now()) @map("created_at")
+  
+  // 关联
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balances  TokenBalance[]
+  fromTransactions Transaction[] @relation("FromWallet")
+  toTransactions   Transaction[] @relation("ToWallet")
+  
+  @@map("wallets")
+}
+
+// 代币余额表
+model TokenBalance {
+  id            String  @id @default(uuid())
+  walletId      String  @map("wallet_id")
+  tokenAddress  String  @map("token_address")
+  tokenSymbol   String  @map("token_symbol")
+  tokenName     String  @map("token_name")
+  balance       String  // 使用字符串存储大数
+  decimals      Int     @default(18)
+  
+  // 关联
+  wallet        Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  
+  @@unique([walletId, tokenAddress])
+  @@map("token_balances")
+}
+
+// 交易表
+model Transaction {
+  id            String            @id @default(uuid())
+  fromWalletId  String?           @map("from_wallet_id")
+  toWalletId    String?           @map("to_wallet_id")
+  fromAddress   String            @map("from_address")
+  toAddress     String            @map("to_address")
+  amount        String            // 使用字符串存储大数
+  tokenAddress  String?           @map("token_address")
+  tokenSymbol   String?           @map("token_symbol")
+  txHash        String?           @unique @map("tx_hash")
+  status        String @default("PENDING")
+  gasUsed       String?           @map("gas_used")
+  gasPrice      String?           @map("gas_price")
+  blockNumber   Int?              @map("block_number")
+  userId        String            @map("user_id")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  
+  // 关联
+  user          User    @relation(fields: [userId], references: [id])
+  fromWallet    Wallet? @relation("FromWallet", fields: [fromWalletId], references: [id])
+  toWallet      Wallet? @relation("ToWallet", fields: [toWalletId], references: [id])
+  approvals     TransactionApproval[]
+  
+  @@map("transactions")
+}
+
+// 交易审批表
+model TransactionApproval {
+  id            String    @id @default(uuid())
+  transactionId String    @map("transaction_id")
+  approverId    String    @map("approver_id")
+  status        String @default("PENDING")
+  comment       String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  // 关联
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  
+  @@unique([transactionId, approverId])
+  @@map("transaction_approvals")
+}
+
+// KYC文档表
+model KycDocument {
+  id          String      @id @default(uuid())
+  userId      String      @map("user_id")
+  documentType String @map("document_type")
+  fileName    String      @map("file_name")
+  filePath    String      @map("file_path")
+  fileSize    Int         @map("file_size")
+  mimeType    String      @map("mime_type")
+  status      String   @default("PENDING")
+  ocrData     String?     @map("ocr_data") // JSON格式的OCR识别结果
+  verifiedAt  DateTime?   @map("verified_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  // 关联
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("kyc_documents")
+}
+
+// 活体检测记录表
+model LivenessCheck {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  status          String    @default("PENDING") // PENDING, IN_PROGRESS, PASSED, FAILED
+  challengeType   String    @map("challenge_type") // BLINK, NOD, SHAKE, SMILE
+  challengeResult String?   @map("challenge_result") // JSON格式的检测结果
+  faceImagePath   String?   @map("face_image_path") // 人脸截图路径
+  confidence      Float?    // 置信度分数 0-1
+  attempts        Int       @default(0) // 尝试次数
+  maxAttempts     Int       @default(3) @map("max_attempts")
+  completedAt     DateTime? @map("completed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("liveness_checks")
+}
+
+// SIEM事件表
+model SiemEvent {
+  id          String      @id @default(uuid())
+  userId      String?     @map("user_id")
+  eventType   String @map("event_type")
+  details     String      // JSON格式的事件详情
+  riskLevel   String   @map("risk_level") @default("LOW")
+  ipAddress   String?     @map("ip_address")
+  userAgent   String?     @map("user_agent")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  
+  // 关联
+  user        User? @relation(fields: [userId], references: [id])
+  
+  @@map("siem_events")
+}
+
+// 智能合约表
+model SmartContract {
+  id          String   @id @default(uuid())
+  name        String
+  address     String   @unique
+  abi         String   // JSON格式的ABI
+  bytecode    String?
+  deployedBy  String   @map("deployed_by")
+  network     String   @default("localhost")
+  blockNumber Int?     @map("block_number")
+  txHash      String?  @map("tx_hash")
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@map("smart_contracts")
+}
+
+// 法币订单表
+model FiatOrder {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  type          String   // DEPOSIT, WITHDRAW
+  amount        String   // 金额
+  currency      String   // CNY, USD等
+  status        String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED, CANCELLED
+  paymentMethod String?  @map("payment_method") // BANK_CARD, ALIPAY, WECHAT等
+  bankAccount   String?  @map("bank_account")
+  bankName      String?  @map("bank_name")
+  accountHolder String?  @map("account_holder")
+  note          String?  // 备注
+  processedBy   String?  @map("processed_by") // 处理人员ID
+  processedAt   DateTime? @map("processed_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  
+  // 关联
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("fiat_orders")
+}
+
+// 通知表
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String   // TRANSACTION, KYC, SECURITY, SYSTEM
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  // 关联
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+// SQLite 不支持枚举，使用字符串代替
+// 约定的值:
+// UserRole: USER, ADMIN, COMPLIANCE
+// WalletType: CUSTODIAL, NON_CUSTODIAL
+// KycStatus: PENDING, APPROVED, REJECTED, EXPIRED
+// TransactionStatus: PENDING, CONFIRMED, FAILED, CANCELLED
+// ApprovalStatus: PENDING, APPROVED, REJECTED
+// KycDocumentType: ID_CARD, PASSPORT, DRIVER_LICENSE, UTILITY_BILL, BANK_STATEMENT
+// SiemEventType: LOGIN, LOGOUT, TRANSACTION, WALLET_CREATED, KYC_SUBMITTED, KYC_APPROVED, KYC_REJECTED, ADMIN_ACTION, SECURITY_ALERT
+// RiskLevel: LOW, MEDIUM, HIGH, CRITICAL
