@@ -58,7 +58,8 @@ export async function POST(request: NextRequest) {
         paymentMethod: paymentMethod,
         bankAccount: bankAccount || null,
         bankName: bankName || null,
-        accountHolder: accountHolder || null
+        accountHolder: accountHolder || null,
+        txReference: null
       }
     })
 
@@ -72,6 +73,14 @@ export async function POST(request: NextRequest) {
         amount: amountNum,
         currency: currency,
         reference: `DEPOSIT_${fiatOrder.id}`
+      })
+      
+      // Update order with transaction reference
+      await prisma.fiatOrder.update({
+        where: { id: fiatOrder.id },
+        data: { 
+          txReference: processingResult.transactionId 
+        }
       })
     }
 

@@ -61,10 +61,32 @@ export default function ContractsPage() {
       const response = await fetch('/api/admin/contracts/list')
       if (response.ok) {
         const data = await response.json()
-        setContracts(data.contracts || [])
+        const dbContracts = data.contracts || []
+        
+        // Add pre-deployed Sepolia contract if env var is set
+        const sepoliaAddress = process.env.NEXT_PUBLIC_NEST_TOKEN_ADDRESS
+        if (sepoliaAddress) {
+          const existsInDb = dbContracts.some((c: Contract) => 
+            c.address.toLowerCase() === sepoliaAddress.toLowerCase()
+          )
+          
+          if (!existsInDb) {
+            // Add pre-deployed contract to the list
+            dbContracts.unshift({
+              id: 'sepolia-predefined',
+              name: 'NestToken (Pre-deployed Sepolia)',
+              address: sepoliaAddress,
+              txHash: '0x...',
+              blockNumber: 0,
+              createdAt: new Date().toISOString()
+            })
+          }
+        }
+        
+        setContracts(dbContracts)
         
         // 获取每个合约的代币信息
-        for (const contract of data.contracts || []) {
+        for (const contract of dbContracts) {
           fetchTokenInfo(contract.address)
         }
       }
