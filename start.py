@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NestWallet 一键启动脚本
-用于在客户电脑上自动配置环境、部署合约、启动系统
+NestWallet One-Click Startup Script
+Automatically configures environment, deploys contracts, and starts the system on client computers
 """
 
 import os
@@ -14,7 +14,7 @@ import platform
 from pathlib import Path
 
 class Colors:
-    """终端颜色"""
+    """Terminal colors"""
     BLUE = '\033[94m'
     GREEN = '\033[92m'
     YELLOW = '\033[93m'
@@ -23,29 +23,29 @@ class Colors:
     BOLD = '\033[1m'
 
 def print_header(text):
-    """打印标题"""
+    """Print header"""
     print(f"\n{Colors.BOLD}{Colors.BLUE}{'='*60}{Colors.END}")
     print(f"{Colors.BOLD}{Colors.BLUE}{text:^60}{Colors.END}")
     print(f"{Colors.BOLD}{Colors.BLUE}{'='*60}{Colors.END}\n")
 
 def print_success(text):
-    """打印成功消息"""
+    """Print success message"""
     print(f"{Colors.GREEN}✅ {text}{Colors.END}")
 
 def print_info(text):
-    """打印信息"""
+    """Print info message"""
     print(f"{Colors.BLUE}ℹ️  {text}{Colors.END}")
 
 def print_warning(text):
-    """打印警告"""
+    """Print warning message"""
     print(f"{Colors.YELLOW}⚠️  {text}{Colors.END}")
 
 def print_error(text):
-    """打印错误"""
+    """Print error message"""
     print(f"{Colors.RED}❌ {text}{Colors.END}")
 
 def run_command(cmd, cwd=None, show_output=True, check=True):
-    """运行命令"""
+    """Run command"""
     try:
         if show_output:
             result = subprocess.run(
@@ -70,116 +70,116 @@ def run_command(cmd, cwd=None, show_output=True, check=True):
             return result.returncode == 0, result.stdout, result.stderr
     except subprocess.CalledProcessError as e:
         if check:
-            print_error(f"命令执行失败: {cmd}")
-            print_error(f"错误: {e}")
+            print_error(f"Command execution failed: {cmd}")
+            print_error(f"Error: {e}")
         return False
     except Exception as e:
-        print_error(f"执行命令时出错: {e}")
+        print_error(f"Error executing command: {e}")
         return False
 
 def check_node():
-    """检查Node.js是否安装"""
-    print_info("检查 Node.js...")
+    """Check if Node.js is installed"""
+    print_info("Checking Node.js...")
     success, stdout, _ = run_command("node --version", show_output=False, check=False)
     if success:
         version = stdout.strip()
-        print_success(f"Node.js 已安装: {version}")
+        print_success(f"Node.js installed: {version}")
         return True
     else:
-        print_error("未检测到 Node.js！")
-        print_info("请访问 https://nodejs.org/ 下载安装 Node.js (推荐 LTS 版本)")
+        print_error("Node.js not detected!")
+        print_info("Please visit https://nodejs.org/ to download and install Node.js (LTS version recommended)")
         return False
 
 def check_npm():
-    """检查npm是否可用"""
-    print_info("检查 npm...")
+    """Check if npm is available"""
+    print_info("Checking npm...")
     success, stdout, _ = run_command("npm --version", show_output=False, check=False)
     if success:
         version = stdout.strip()
-        print_success(f"npm 已安装: {version}")
+        print_success(f"npm installed: {version}")
         return True
     else:
-        print_error("npm 不可用")
+        print_error("npm is not available")
         return False
 
 def install_dependencies(project_dir):
-    """安装依赖"""
-    print_header("安装项目依赖")
+    """Install dependencies"""
+    print_header("Installing Project Dependencies")
     
     if not os.path.exists(os.path.join(project_dir, "node_modules")):
-        print_info("首次运行，正在安装依赖包...")
-        print_info("这可能需要几分钟，请耐心等待...")
+        print_info("First run, installing dependencies...")
+        print_info("This may take a few minutes, please wait...")
         if run_command("npm install", cwd=project_dir):
-            print_success("依赖安装完成")
+            print_success("Dependencies installed successfully")
             return True
         else:
-            print_error("依赖安装失败")
+            print_error("Dependency installation failed")
             return False
     else:
-        print_success("依赖已安装")
+        print_success("Dependencies already installed")
         return True
 
 def setup_env_file(project_dir):
-    """配置环境变量文件"""
-    print_header("配置环境变量")
+    """Configure environment variables file"""
+    print_header("Configuring Environment Variables")
     
     env_local_path = os.path.join(project_dir, ".env.local")
     
-    # 检查是否已配置
+    # Check if already configured
     if os.path.exists(env_local_path):
         with open(env_local_path, 'r', encoding='utf-8') as f:
             content = f.read()
             if 'NEXT_PUBLIC_NEST_TOKEN_ADDRESS' in content and len(content) > 100:
-                print_success("环境变量已配置")
+                print_success("Environment variables already configured")
                 return True
     
-    # 创建基础配置
-    env_content = """# NestWallet 环境配置
+    # Create basic configuration
+    env_content = """# NestWallet Environment Configuration
 
-# 数据库
+# Database
 DATABASE_URL="file:./dev.db"
 
-# JWT密钥
+# JWT Secret
 JWT_SECRET="nest-wallet-jwt-secret-key-2024"
 
-# RPC配置 (Sepolia 测试网)
+# RPC Configuration (Sepolia Testnet)
 NEXT_PUBLIC_RPC_URL="https://ethereum-sepolia-rpc.publicnode.com"
 NEXT_PUBLIC_CHAIN_ID="11155111"
 
-# 合约地址 (Sepolia 已部署)
+# Contract Address (Deployed on Sepolia)
 NEXT_PUBLIC_NEST_TOKEN_ADDRESS="0x9fB3658e8810b35E5eb573629F4FA25de772544C"
 """
     
     with open(env_local_path, 'w', encoding='utf-8') as f:
         f.write(env_content)
     
-    print_success("环境变量配置完成")
+    print_success("Environment variables configured successfully")
     return True
 
 def init_database(project_dir):
-    """初始化数据库"""
-    print_header("初始化数据库")
+    """Initialize database"""
+    print_header("Initializing Database")
     
     db_path = os.path.join(project_dir, "dev.db")
     
     if os.path.exists(db_path):
-        print_success("数据库已存在")
+        print_success("Database already exists")
     else:
-        print_info("生成数据库...")
+        print_info("Generating database...")
         if run_command("npx prisma generate", cwd=project_dir):
-            print_success("Prisma client 生成完成")
+            print_success("Prisma client generated successfully")
         
         if run_command("npx prisma db push", cwd=project_dir):
-            print_success("数据库创建完成")
+            print_success("Database created successfully")
         else:
-            print_error("数据库创建失败")
+            print_error("Database creation failed")
             return False
     
     return True
 
 def create_admin_user(project_dir):
-    """创建管理员账户"""
-    print_header("创建管理员账户")
+    """Create admin account"""
+    print_header("Creating Admin Account")
     
     create_admin_script = """
 const { PrismaClient } = require('@prisma/client');
@@ -202,11 +202,11 @@ async function main() {
       },
     });
     
-    console.log('管理员账户已创建');
-    console.log('邮箱: admin@test.com');
-    console.log('密码: 123456');
+    console.log('Admin account created');
+    console.log('Email: admin@test.com');
+    console.log('Password: 123456');
   } catch (error) {
-    console.error('创建失败:', error.message);
+    console.error('Creation failed:', error.message);
   } finally {
     await prisma.$disconnect();
   }
@@ -219,24 +219,24 @@ main();
     with open(script_path, 'w', encoding='utf-8') as f:
         f.write(create_admin_script)
     
-    print_info("创建管理员账户: admin@test.com / 123456")
+    print_info("Creating admin account: admin@test.com / 123456")
     run_command(f"node _create_admin.js", cwd=project_dir, show_output=False)
     
-    # 清理临时文件
+    # Clean up temporary file
     try:
         os.remove(script_path)
     except:
         pass
     
-    print_success("管理员账户已准备")
+    print_success("Admin account ready")
     return True
 
 def start_ganache(project_dir):
-    """启动Ganache本地测试网"""
-    print_header("启动 Ganache 本地测试网")
+    """Start Ganache local testnet"""
+    print_header("Starting Ganache Local Testnet")
 
-    print_info("正在启动 Ganache...")
-    print_info("RPC地址: http://127.0.0.1:8545")
+    print_info("Starting Ganache...")
+    print_info("RPC Address: http://127.0.0.1:8545")
 
     ganache_cmd = "npm run ganache"
 
@@ -256,10 +256,10 @@ def start_ganache(project_dir):
             stderr=subprocess.DEVNULL
         )
 
-    print_info("等待 Ganache 启动...")
+    print_info("Waiting for Ganache to start...")
     time.sleep(5)
 
-    # 测试连接
+    # Test connection
     for i in range(10):
         try:
             import urllib.request
@@ -269,21 +269,21 @@ def start_ganache(project_dir):
                 headers={'Content-Type': 'application/json'}
             )
             urllib.request.urlopen(req, timeout=1)
-            print_success("Ganache 启动成功")
+            print_success("Ganache started successfully")
             return True
         except:
             if i < 9:
-                print_info(f"等待中... ({i+1}/10)")
+                print_info(f"Waiting... ({i+1}/10)")
                 time.sleep(2)
 
-    print_warning("Ganache 可能启动失败，但继续执行")
+    print_warning("Ganache may have failed to start, but continuing")
     return True
 
 def check_sepolia_connection():
-    """检查 Sepolia 网络连接"""
-    print_header("检查 Sepolia 测试网连接")
+    """Check Sepolia network connection"""
+    print_header("Checking Sepolia Testnet Connection")
 
-    print_info("正在连接 Sepolia 测试网...")
+    print_info("Connecting to Sepolia testnet...")
     print_info("RPC: https://ethereum-sepolia-rpc.publicnode.com")
 
     try:
@@ -296,30 +296,30 @@ def check_sepolia_connection():
         response = urllib.request.urlopen(req, timeout=10)
         result = json.loads(response.read().decode())
         block_number = int(result['result'], 16)
-        print_success(f"Sepolia 连接成功，当前区块: {block_number}")
+        print_success(f"Sepolia connected successfully, current block: {block_number}")
         return True
     except Exception as e:
-        print_warning(f"Sepolia 连接失败: {e}")
-        print_info("请检查网络连接")
+        print_warning(f"Sepolia connection failed: {e}")
+        print_info("Please check network connection")
         return False
 
 def check_contract(project_dir):
-    """检查合约是否已部署"""
-    print_header("检查智能合约")
+    """Check if contract is deployed"""
+    print_header("Checking Smart Contract")
 
     contract_address = "0x9fB3658e8810b35E5eb573629F4FA25de772544C"
-    print_info(f"合约地址: {contract_address}")
-    print_info("查看: https://sepolia.etherscan.io/address/" + contract_address)
-    print_success("合约已部署到 Sepolia 测试网")
+    print_info(f"Contract address: {contract_address}")
+    print_info("View: https://sepolia.etherscan.io/address/" + contract_address)
+    print_success("Contract deployed to Sepolia testnet")
     return True
 
 def start_app(project_dir):
-    """启动Next.js应用"""
-    print_header("启动 NestWallet 应用")
+    """Start Next.js application"""
+    print_header("Starting NestWallet Application")
     
-    print_info("正在启动 Next.js 开发服务器...")
+    print_info("Starting Next.js development server...")
     
-    # 在后台启动
+    # Start in background
     if platform.system() == "Windows":
         subprocess.Popen(
             "npm run dev",
@@ -336,133 +336,133 @@ def start_app(project_dir):
             stderr=subprocess.DEVNULL
         )
     
-    print_info("等待应用启动...")
+    print_info("Waiting for application to start...")
     time.sleep(8)
     
-    # 测试应用
+    # Test application
     for i in range(10):
         try:
             import urllib.request
             urllib.request.urlopen('http://localhost:3000', timeout=2)
-            print_success("应用启动成功")
+            print_success("Application started successfully")
             return True
         except:
             if i < 9:
                 time.sleep(2)
     
-    print_warning("应用可能还在启动中")
+    print_warning("Application may still be starting")
     return True
 
 def open_browser():
-    """打开浏览器"""
+    """Open browser"""
     import webbrowser
     
-    print_info("正在打开浏览器...")
+    print_info("Opening browser...")
     webbrowser.open('http://localhost:3000')
     time.sleep(1)
 
 def main():
-    """主函数"""
-    print_header("🚀 NestWallet 一键启动程序")
+    """Main function"""
+    print_header("🚀 NestWallet One-Click Startup Program")
     
-    # 获取项目目录
+    # Get project directory
     project_dir = os.path.dirname(os.path.abspath(__file__))
-    print_info(f"项目目录: {project_dir}")
+    print_info(f"Project directory: {project_dir}")
     
-    # 1. 检查环境
-    print_header("检查运行环境")
+    # 1. Check environment
+    print_header("Checking Runtime Environment")
     if not check_node():
-        print_error("请先安装 Node.js")
-        input("\n按回车键退出...")
+        print_error("Please install Node.js first")
+        input("\nPress Enter to exit...")
         sys.exit(1)
     
     if not check_npm():
-        print_error("npm 不可用")
-        input("\n按回车键退出...")
+        print_error("npm is not available")
+        input("\nPress Enter to exit...")
         sys.exit(1)
     
-    print_success("环境检查通过")
+    print_success("Environment check passed")
     
-    # 2. 安装依赖
+    # 2. Install dependencies
     if not install_dependencies(project_dir):
-        print_error("依赖安装失败")
-        input("\n按回车键退出...")
+        print_error("Dependency installation failed")
+        input("\nPress Enter to exit...")
         sys.exit(1)
     
-    # 3. 配置环境
+    # 3. Configure environment
     if not setup_env_file(project_dir):
-        print_error("环境配置失败")
-        input("\n按回车键退出...")
+        print_error("Environment configuration failed")
+        input("\nPress Enter to exit...")
         sys.exit(1)
     
-    # 4. 初始化数据库
+    # 4. Initialize database
     if not init_database(project_dir):
-        print_error("数据库初始化失败")
-        input("\n按回车键退出...")
+        print_error("Database initialization failed")
+        input("\nPress Enter to exit...")
         sys.exit(1)
     
-    # 5. 创建管理员
+    # 5. Create admin user
     create_admin_user(project_dir)
 
-    # 6. 启动 Ganache 本地测试网
+    # 6. Start Ganache local testnet
     if not start_ganache(project_dir):
-        print_warning("Ganache 启动可能失败")
+        print_warning("Ganache may have failed to start")
 
-    # 7. 检查 Sepolia 网络连接
+    # 7. Check Sepolia network connection
     if not check_sepolia_connection():
-        print_warning("Sepolia 连接失败，但继续运行")
+        print_warning("Sepolia connection failed, but continuing")
 
-    # 7. 检查合约
+    # 7. Check contract
     check_contract(project_dir)
     
-    # 8. 启动应用
+    # 8. Start application
     if not start_app(project_dir):
-        print_warning("应用启动可能失败")
+        print_warning("Application may have failed to start")
     
-    # 9. 显示信息
-    print_header("🎉 启动完成")
-    print_success("系统已启动！")
+    # 9. Display information
+    print_header("🎉 Startup Complete")
+    print_success("System is running!")
     print()
-    print(f"{Colors.BOLD}访问地址:{Colors.END}")
+    print(f"{Colors.BOLD}Access URL:{Colors.END}")
     print(f"  {Colors.GREEN}http://localhost:3000{Colors.END}")
     print()
-    print(f"{Colors.BOLD}管理员账户:{Colors.END}")
-    print(f"  邮箱: {Colors.GREEN}admin@test.com{Colors.END}")
-    print(f"  密码: {Colors.GREEN}123456{Colors.END}")
+    print(f"{Colors.BOLD}Admin Account:{Colors.END}")
+    print(f"  Email: {Colors.GREEN}admin@test.com{Colors.END}")
+    print(f"  Password: {Colors.GREEN}123456{Colors.END}")
     print()
-    print(f"{Colors.BOLD}Sepolia 测试网:{Colors.END}")
+    print(f"{Colors.BOLD}Sepolia Testnet:{Colors.END}")
     print(f"  RPC: {Colors.GREEN}https://ethereum-sepolia-rpc.publicnode.com{Colors.END}")
-    print(f"  合约: {Colors.GREEN}0x9fB3658e8810b35E5eb573629F4FA25de772544C{Colors.END}")
+    print(f"  Contract: {Colors.GREEN}0x9fB3658e8810b35E5eb573629F4FA25de772544C{Colors.END}")
     print()
-    print(f"{Colors.BOLD}功能入口:{Colors.END}")
-    print(f"  - 登录: {Colors.BLUE}http://localhost:3000/auth/login{Colors.END}")
+    print(f"{Colors.BOLD}Feature Access:{Colors.END}")
+    print(f"  - Login: {Colors.BLUE}http://localhost:3000/auth/login{Colors.END}")
     print(f"  - Mint: {Colors.BLUE}http://localhost:3000/admin/mint{Colors.END}")
     print(f"  - SIEM: {Colors.BLUE}http://localhost:3000/admin/siem{Colors.END}")
     print()
     
-    # 10. 打开浏览器
+    # 10. Open browser
     try:
         open_browser()
     except:
         pass
     
-    print_warning("关闭此窗口将停止所有服务")
-    print_info("按 Ctrl+C 可以停止程序")
+    print_warning("Closing this window will stop all services")
+    print_info("Press Ctrl+C to stop the program")
     
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
         print()
-        print_info("正在停止服务...")
-        print_success("程序已退出")
+        print_info("Stopping services...")
+        print_success("Program exited")
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print_error(f"程序出错: {e}")
+        print_error(f"Program error: {e}")
         import traceback
         traceback.print_exc()
-        input("\n按回车键退出...")
+        input("\nPress Enter to exit...")
         sys.exit(1)
