@@ -86,11 +86,11 @@ export async function POST(request: NextRequest) {
       
       if (balanceNum < (amountNum + estimatedGas)) {
         return NextResponse.json({ 
-          error: `Insufficient balance: need ${(amountNum + estimatedGas).toFixed(6)} ETH，but only have ${balanceNum.toFixed(6)} ETH` 
+          error: `Insufficient balance: need ${(amountNum + estimatedGas).toFixed(6)} ETH,but only have ${balanceNum.toFixed(6)} ETH` 
         }, { status: 400 })
       }
     } catch (balanceError) {
-      console.warn('Balance checkfailed，continuing execution:', balanceError)
+      console.warn('Balance checkfailed,continuing execution:', balanceError)
     }
 
     // Create transaction record
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
             gasPrice = result.gasPrice
           }
 
-          console.log(`Transaction sent successfulfully: ${txHash}`)
+          console.log(`Transaction sent successfully: ${txHash}`)
           break // Break loop on successful
 
         } catch (sendError) {

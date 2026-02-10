@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     // Record successfulful password change
     const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
-    await SiemLogger.logPasswordChangeAttempt(user.id, true, 'Password changed successfulfully', clientIP)
+    await SiemLogger.logPasswordChangeAttempt(user.id, true, 'Password changed successfullyly', clientIP)
 
     // TODO: Create notification (enable after regenerating Prisma client)
     // try {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     //     data: {
     //       userId: user.id,
     //       type: 'SECURITY',
-    //       title: 'Password changed successfulfully',
+    //       title: 'Password changed successfullyly',
     //       message: 'Your account password has been changed successfully. If this was not you, please contact customer service immediately.',
     //       read: false
     //     }
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       successful: true,
-      message: 'Password changed successfulfully'
+      message: 'Password changed successfullyly'
     })
 
   } catch (error) {

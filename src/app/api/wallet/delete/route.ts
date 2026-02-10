@@ -99,7 +99,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       successful: true,
-      message: 'Wallet deleted successfulfully'
+      message: 'Wallet deleted successfully'
     })
 
   } catch (error) {

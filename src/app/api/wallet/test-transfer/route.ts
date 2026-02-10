@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       gas: '0x5208' // 21000 gas
     }])
 
-    console.log('test transfersuccessful，TxHash:', txResponse)
+    console.log('Test transfer successful,TxHash:', txResponse)
 
     // Wait 1 second for transaction confirmation
     setTimeout(async () => {
