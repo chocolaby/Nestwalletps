@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { SiemLogger } from '@/lib/siem'
-import { mintTokens } from '@/lib/contracts'
+import { mintTokens, getTokenInfo } from '@/lib/contracts'
 import { z } from 'zod'
 
 const mintSchema = z.object({
@@ -11,6 +11,85 @@ const mintSchema = z.object({
   amount: z.string().min(1, '金额不能为空'),
   reason: z.string().min(1, '原因不能为空')
 })
+
+// GET handler to return available contracts
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getUserFromRequest(request)
+    
+    if (!user || user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: '无权限' },
+        { status: 403 }
+      )
+    }
+
+    // Get contracts from database
+    const dbContracts = await prisma.smartContract.findMany({
+      orderBy: { createdAt: 'desc' }
+    })
+
+    // Add the pre-deployed Sepolia contract if env var is set
+    const contracts = [...dbContracts]
+    const sepoliaAddress = process.env.NEXT_PUBLIC_NEST_TOKEN_ADDRESS
+    
+    if (sepoliaAddress) {
+      // Check if it's not already in DB
+      const existsInDb = dbContracts.some(c => c.address.toLowerCase() === sepoliaAddress.toLowerCase())
+      
+      if (!existsInDb) {
+        // Try to fetch token info
+        try {
+          const tokenInfo = await getTokenInfo(sepoliaAddress)
+          contracts.unshift({
+            id: 'sepolia-predefined',
+            name: `${tokenInfo.name} (Pre-deployed)`,
+            address: sepoliaAddress,
+            abi: '[]', // Not needed for display
+            bytecode: null,
+            deployedBy: 'system',
+            network: 'sepolia',
+            blockNumber: null,
+            txHash: null,
+            createdAt: new Date()
+          })
+        } catch (error) {
+          // If can't fetch info, add with basic info
+          contracts.unshift({
+            id: 'sepolia-predefined',
+            name: 'NestToken (Pre-deployed Sepolia)',
+            address: sepoliaAddress,
+            abi: '[]',
+            bytecode: null,
+            deployedBy: 'system',
+            network: 'sepolia',
+            blockNumber: null,
+            txHash: null,
+            createdAt: new Date()
+          })
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      contracts: contracts.map(c => ({
+        id: c.id,
+        name: c.name,
+        address: c.address,
+        network: c.network,
+        createdAt: c.createdAt
+      }))
+    })
+
+  } catch (error) {
+    console.error('Get contracts error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,16 +113,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 获取合约信息
+    // Try to get contract from DB, but don't require it
     const contract = await prisma.smartContract.findUnique({
       where: { address: contractAddress }
     })
 
-    if (!contract) {
-      return NextResponse.json(
-        { error: '合约不存在' },
-        { status: 404 }
-      )
+    // Use env var as fallback if contract not in DB
+    let tokenSymbol = 'NEST'
+    if (contract) {
+      // Could extract symbol from ABI if needed
+      tokenSymbol = contract.name
+    } else {
+      // Check if this is the pre-deployed contract
+      const sepoliaAddress = process.env.NEXT_PUBLIC_NEST_TOKEN_ADDRESS
+      if (sepoliaAddress && contractAddress.toLowerCase() !== sepoliaAddress.toLowerCase()) {
+        // Contract not in DB and not the env var contract - warn but continue
+        console.warn(`Contract ${contractAddress} not found in DB, proceeding anyway`)
+      }
     }
 
     // 使用部署者私钥进行铸造
@@ -66,7 +152,7 @@ export async function POST(request: NextRequest) {
         toAddress: toAddress,
         amount: amount,
         tokenAddress: contractAddress,
-        tokenSymbol: 'NEST', // 可以从合约获取
+        tokenSymbol: tokenSymbol,
         txHash: mintResult.txHash,
         status: 'CONFIRMED',
         gasUsed: mintResult.gasUsed,

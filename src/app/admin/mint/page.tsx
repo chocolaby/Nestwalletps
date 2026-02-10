@@ -17,10 +17,19 @@ interface MintRecord {
   createdAt: string
 }
 
+interface ContractOption {
+  id: string
+  name: string
+  address: string
+  network: string
+}
+
 export default function MintPage() {
   const { user } = useAuth()
   const router = useRouter()
   
+  const [contractAddress, setContractAddress] = useState('')
+  const [contracts, setContracts] = useState<ContractOption[]>([])
   const [toAddress, setToAddress] = useState('')
   const [amount, setAmount] = useState('')
   const [tokenSymbol, setTokenSymbol] = useState('NEST')
@@ -43,6 +52,7 @@ export default function MintPage() {
     }
 
     fetchRecords()
+    fetchContracts()
   }, [user, router])
 
   const fetchRecords = async () => {
@@ -57,6 +67,18 @@ export default function MintPage() {
     }
   }
 
+  const fetchContracts = async () => {
+    try {
+      const response = await fetch('/api/admin/mint')
+      if (response.ok) {
+        const data = await response.json()
+        setContracts(data.contracts || [])
+      }
+    } catch (error) {
+      console.error('获取合约列表失败:', error)
+    }
+  }
+
   const handleMint = async () => {
     setLoading(true)
     setError('')
@@ -67,9 +89,9 @@ export default function MintPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          contractAddress,
           toAddress,
           amount,
-          tokenSymbol,
           reason
         })
       })
@@ -125,6 +147,44 @@ export default function MintPage() {
             </h2>
 
             <div className="space-y-4">
+              {/* 选择合约 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  选择合约
+                </label>
+                <select
+                  value={contracts.some(c => c.address === contractAddress) ? contractAddress : 'manual'}
+                  onChange={(e) => {
+                    if (e.target.value === 'manual') {
+                      setContractAddress('')
+                    } else {
+                      setContractAddress(e.target.value)
+                    }
+                  }}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                >
+                  <option value="manual">手动输入合约地址</option>
+                  {contracts.map((contract) => (
+                    <option key={contract.id} value={contract.address}>
+                      {contract.name} ({contract.address.slice(0, 10)}...)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 手动输入合约地址 */}
+              {!contracts.some(c => c.address === contractAddress) && (
+                <Input
+                  label="合约地址"
+                  value={contractAddress}
+                  onChange={(e) => setContractAddress(e.target.value)}
+                  placeholder="0x..."
+                  required
+                  disabled={loading}
+                />
+              )}
+
               {/* 接收地址 */}
               <Input
                 label="接收地址"
@@ -204,6 +264,7 @@ export default function MintPage() {
                     ⚠️ 请确认铸造信息
                   </h3>
                   <div className="space-y-1 text-sm text-yellow-800 mb-4">
+                    <p>合约: {contractAddress}</p>
                     <p>地址: {toAddress}</p>
                     <p>数量: {amount} {tokenSymbol}</p>
                     <p>原因: {reason}</p>
@@ -232,6 +293,8 @@ export default function MintPage() {
                 <Button
                   onClick={() => setShowConfirm(true)}
                   disabled={
+                    !contractAddress ||
+                    !isValidAddress(contractAddress) ||
                     !toAddress ||
                     !isValidAddress(toAddress) ||
                     !amount ||
