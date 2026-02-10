@@ -3,6 +3,7 @@ import { getUserFromRequest } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { SiemLogger } from '@/lib/siem'
 import { mintTokens, getTokenInfo } from '@/lib/contracts'
+import { createSigningRequest, approveSigningRequest, executeHSMSigning } from '@/lib/hsm'
 import { z } from 'zod'
 
 const mintSchema = z.object({
@@ -136,6 +137,45 @@ export async function POST(request: NextRequest) {
     const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY || 
       '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
 
+    // HSM signing flow: Create request -> Auto-approve -> Sign
+    const signingRequest = createSigningRequest(
+      user.id,
+      {
+        operation: 'mint',
+        contractAddress,
+        toAddress,
+        amount,
+        reason,
+        timestamp: new Date().toISOString()
+      },
+      1 // requiredApprovals: 1 for demo
+    )
+
+    // Auto-approve for admin (demo purposes)
+    const approvalResult = approveSigningRequest(
+      signingRequest.id,
+      user.id,
+      true,
+      'Auto-approved by admin for mint operation'
+    )
+
+    if (!approvalResult.success) {
+      return NextResponse.json(
+        { error: `HSM approval failed: ${approvalResult.message}` },
+        { status: 500 }
+      )
+    }
+
+    // Execute HSM signing
+    const hsmSigningResult = await executeHSMSigning(signingRequest.id, 'platform')
+    
+    if (!hsmSigningResult.success) {
+      return NextResponse.json(
+        { error: `HSM signing failed: ${hsmSigningResult.message}` },
+        { status: 500 }
+      )
+    }
+
     // 执行合约铸造
     const mintResult = await mintTokens(
       contractAddress,
@@ -171,6 +211,9 @@ export async function POST(request: NextRequest) {
         amount,
         reason,
         txHash: mintResult.txHash,
+        hsmRequestId: signingRequest.id,
+        hsmSignature: hsmSigningResult.result?.signature,
+        signedBy: hsmSigningResult.result?.signedBy,
         timestamp: new Date().toISOString()
       },
       riskLevel: 'HIGH',
@@ -186,6 +229,11 @@ export async function POST(request: NextRequest) {
         toAddress,
         amount,
         contractAddress
+      },
+      hsmInfo: {
+        requestId: signingRequest.id,
+        signedBy: hsmSigningResult.result?.signedBy,
+        signature: hsmSigningResult.result?.signature?.slice(0, 20) + '...'
       }
     })
 
