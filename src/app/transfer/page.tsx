@@ -37,23 +37,23 @@ export default function TransferPage() {
 
   const fetchWallets = async () => {
     try {
-      console.log('📡 正在获取钱包列表...')
+      console.log('📡 Fetching wallet list...')
       const response = await fetch('/api/wallet/list', {
         credentials: 'include'
       })
-      console.log('📡 响应状态:', response.status)
+      console.log('📡 Response status:', response.status)
       if (response.ok) {
         const data = await response.json()
-        console.log('📡 钱包数据:', data)
+        console.log('📡 Wallet data:', data)
         setWallets(data.wallets || [])
         if (data.wallets?.length > 0) {
           setFromWallet(data.wallets[0].id)
         }
       } else {
-        console.log('📡 响应失败:', await response.text())
+        console.log('📡 Response failed:', await response.text())
       }
     } catch (error) {
-      console.error('获取钱包列表失败:', error)
+      console.error('Failed to fetch wallet list:', error)
     }
   }
 
@@ -81,13 +81,13 @@ export default function TransferPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Gas估算失败')
+        throw new Error(error.error || 'Gas estimation failed')
       }
 
       const data = await response.json()
       setGasEstimate(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gas估算失败')
+      setError(err instanceof Error ? err.message : 'Gas estimation failed')
     } finally {
       setEstimating(false)
     }
@@ -95,7 +95,7 @@ export default function TransferPage() {
 
   const handleSubmit = async () => {
     if (!fromWallet || !toAddress || !amount) {
-      setError('请填写所有必填字段')
+      setError('Please fill in all required fields')
       return
     }
 
@@ -123,26 +123,26 @@ export default function TransferPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || '转账失败')
+        throw new Error(error.error || 'Transfer failed')
       }
 
       const data = await response.json()
       
-      // 跳转到交易详情或Dashboard
+      // Redirect to transaction details or Dashboard
       router.push('/dashboard')
     } catch (err) {
-      setError(err instanceof Error ? err.message : '转账失败')
+      setError(err instanceof Error ? err.message : 'Transfer failed')
     } finally {
       setLoading(false)
     }
   }
 
-  // 地址验证
+  // Address validation
   const isValidAddress = (address: string) => {
     return /^0x[a-fA-F0-9]{40}$/.test(address)
   }
 
-  // 金额验证
+  // Amount validation
   const isValidAmount = (amt: string) => {
     return /^\d+(\.\d+)?$/.test(amt) && parseFloat(amt) > 0
   }
@@ -153,17 +153,17 @@ export default function TransferPage() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-2xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">转账</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Transfer</h1>
           <p className="mt-2 text-gray-600">
-            向其他地址发送ETH或代币
+            Send ETH or tokens to other addresses
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          {/* 选择钱包 */}
+          {/* Select wallet */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              从钱包
+              From Wallet
             </label>
             <select
               value={fromWallet}
@@ -173,7 +173,7 @@ export default function TransferPage() {
             >
               {wallets.map((wallet) => (
                 <option key={wallet.id} value={wallet.id}>
-                  {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)} ({wallet.type === 'CUSTODIAL' ? '托管' : '非托管'})
+                  {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)} ({wallet.type === 'CUSTODIAL' ? 'Custodial' : 'Non-custodial'})
                 </option>
               ))}
             </select>
@@ -184,9 +184,9 @@ export default function TransferPage() {
             )}
           </div>
 
-          {/* 接收地址 */}
+          {/* Recipient address */}
           <Input
-            label="接收地址"
+            label="Recipient Address"
             value={toAddress}
             onChange={(e) => setToAddress(e.target.value)}
             placeholder="0x..."
@@ -195,14 +195,14 @@ export default function TransferPage() {
           />
           {toAddress && !isValidAddress(toAddress) && (
             <p className="mt-1 text-sm text-red-600">
-              请输入有效的以太坊地址
+              Please enter a valid Ethereum address
             </p>
           )}
 
-          {/* 金额和代币 */}
+          {/* Amount and token */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <Input
-              label="金额"
+              label="Amount"
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
@@ -212,7 +212,7 @@ export default function TransferPage() {
             />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                代币
+                Token
               </label>
               <select
                 value={tokenSymbol}
@@ -226,7 +226,7 @@ export default function TransferPage() {
             </div>
           </div>
 
-          {/* Gas估算 */}
+          {/* Gas estimation */}
           {!gasEstimate && isValidAddress(toAddress) && isValidAmount(amount) && (
             <div className="mb-6">
               <Button
@@ -235,7 +235,7 @@ export default function TransferPage() {
                 loading={estimating}
                 disabled={loading}
               >
-                估算Gas费用
+                Estimate Gas Fee
               </Button>
             </div>
           )}
@@ -243,7 +243,7 @@ export default function TransferPage() {
           {gasEstimate && (
             <div className="mb-6 p-4 bg-blue-50 rounded-lg">
               <h3 className="text-sm font-medium text-blue-900 mb-2">
-                Gas估算
+                Gas Estimation
               </h3>
               <div className="space-y-1 text-sm text-blue-800">
                 <div className="flex justify-between">
@@ -255,32 +255,32 @@ export default function TransferPage() {
                   <span className="font-mono">{(parseInt(gasEstimate.gasPrice) / 1e9).toFixed(2)} Gwei</span>
                 </div>
                 <div className="flex justify-between font-medium">
-                  <span>预估费用:</span>
+                  <span>Estimated Cost:</span>
                   <span className="font-mono">{gasEstimate.totalCost} ETH</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 错误提示 */}
+          {/* Error message */}
           {error && (
             <div className="mb-6 rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-700">{error}</div>
             </div>
           )}
 
-          {/* 确认弹窗 */}
+          {/* Confirmation dialog */}
           {showConfirm && (
             <div className="mb-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <h3 className="text-sm font-medium text-yellow-900 mb-2">
-                ⚠️ 请确认交易信息
+                ⚠️ Please Confirm Transaction Details
               </h3>
               <div className="space-y-1 text-sm text-yellow-800">
-                <p>从: {selectedWallet?.address}</p>
-                <p>到: {toAddress}</p>
-                <p>金额: {amount} {tokenSymbol}</p>
+                <p>From: {selectedWallet?.address}</p>
+                <p>To: {toAddress}</p>
+                <p>Amount: {amount} {tokenSymbol}</p>
                 {gasEstimate && (
-                  <p>Gas费用: {gasEstimate.totalCost} ETH</p>
+                  <p>Gas Fee: {gasEstimate.totalCost} ETH</p>
                 )}
               </div>
               <div className="mt-4 flex space-x-2">
@@ -289,20 +289,20 @@ export default function TransferPage() {
                   loading={loading}
                   className="flex-1"
                 >
-                  确认转账
+                  Confirm Transfer
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setShowConfirm(false)}
                   disabled={loading}
                 >
-                  取消
+                  Cancel
                 </Button>
               </div>
             </div>
           )}
 
-          {/* 按钮 */}
+          {/* Buttons */}
           {!showConfirm && (
             <div className="flex space-x-4">
               <Button
@@ -317,28 +317,28 @@ export default function TransferPage() {
                 }
                 className="flex-1"
               >
-                发送
+                Send
               </Button>
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard')}
                 disabled={loading}
               >
-                取消
+                Cancel
               </Button>
             </div>
           )}
 
-          {/* 安全提示 */}
+          {/* Security tips */}
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <h3 className="text-sm font-medium text-gray-900 mb-2">
-              🔒 安全提示
+              🔒 Security Tips
             </h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• 请仔细核对接收地址，交易无法撤回</li>
-              <li>• 确保有足够的余额支付Gas费用</li>
-              <li>• 不要向未知地址转账</li>
-              <li>• 大额转账建议先小额测试</li>
+              <li>• Double-check the recipient address, transactions cannot be reversed</li>
+              <li>• Ensure you have sufficient balance to pay for gas fees</li>
+              <li>• Do not transfer to unknown addresses</li>
+              <li>• For large transfers, test with a small amount first</li>
             </ul>
           </div>
         </div>

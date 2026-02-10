@@ -20,13 +20,13 @@ export default function ImportWalletPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  // 验证助记词格式（12个单词）
+  // Validate mnemonic format (12 words)
   const isValidMnemonic = (m: string) => {
     const words = m.trim().split(/\s+/)
     return words.length === 12 && words.every(w => w.length > 0)
   }
 
-  // 验证私钥格式
+  // Validate private key format
   const isValidPrivateKey = (pk: string) => {
     return /^(0x)?[a-fA-F0-9]{64}$/.test(pk.trim())
   }
@@ -41,12 +41,12 @@ export default function ImportWalletPage() {
 
       if (importMethod === 'mnemonic') {
         if (!isValidMnemonic(mnemonic)) {
-          throw new Error('请输入有效的12个单词助记词')
+          throw new Error('Please enter a valid 12-word mnemonic phrase')
         }
         body.mnemonic = mnemonic.trim()
       } else {
         if (!isValidPrivateKey(privateKey)) {
-          throw new Error('请输入有效的私钥（64位十六进制）')
+          throw new Error('Please enter a valid private key (64-character hexadecimal)')
         }
         body.privateKey = privateKey.trim().startsWith('0x') 
           ? privateKey.trim() 
@@ -62,22 +62,22 @@ export default function ImportWalletPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || '导入失败')
+        throw new Error(data.error || 'Import failed')
       }
 
-      setSuccess(`钱包导入成功！地址: ${data.wallet.address}`)
+      setSuccess(`Wallet imported successfully! Address: ${data.wallet.address}`)
       
-      // 清空表单
+      // Clear form
       setMnemonic('')
       setPrivateKey('')
 
-      // 2秒后跳转到钱包列表
+      // Redirect to wallet list after 2 seconds
       setTimeout(() => {
         router.push('/wallets')
       }, 2000)
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : '导入失败')
+      setError(err instanceof Error ? err.message : 'Import failed')
     } finally {
       setLoading(false)
     }
@@ -92,17 +92,17 @@ export default function ImportWalletPage() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-2xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">导入钱包</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Import Wallet</h1>
           <p className="mt-2 text-gray-600">
-            通过助记词或私钥导入您现有的钱包
+            Import your existing wallet using mnemonic phrase or private key
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          {/* 导入方式选择 */}
+          {/* Import method selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              选择导入方式
+              Choose Import Method
             </label>
             <div className="grid grid-cols-2 gap-4">
               <button
@@ -114,8 +114,8 @@ export default function ImportWalletPage() {
                 }`}
               >
                 <div className="text-2xl mb-2">📝</div>
-                <div className="font-medium">助记词</div>
-                <div className="text-xs text-gray-500 mt-1">12个单词</div>
+                <div className="font-medium">Mnemonic Phrase</div>
+                <div className="text-xs text-gray-500 mt-1">12 words</div>
               </button>
               <button
                 onClick={() => setImportMethod('privateKey')}
@@ -126,17 +126,17 @@ export default function ImportWalletPage() {
                 }`}
               >
                 <div className="text-2xl mb-2">🔑</div>
-                <div className="font-medium">私钥</div>
-                <div className="text-xs text-gray-500 mt-1">64位十六进制</div>
+                <div className="font-medium">Private Key</div>
+                <div className="text-xs text-gray-500 mt-1">64-char hexadecimal</div>
               </button>
             </div>
           </div>
 
-          {/* 助记词输入 */}
+          {/* Mnemonic input */}
           {importMethod === 'mnemonic' && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                助记词（12个单词，用空格分隔）
+                Mnemonic Phrase (12 words, separated by spaces)
               </label>
               <textarea
                 value={mnemonic}
@@ -148,48 +148,48 @@ export default function ImportWalletPage() {
               />
               {mnemonic && !isValidMnemonic(mnemonic) && (
                 <p className="mt-2 text-sm text-red-600">
-                  请输入12个单词，用空格分隔
+                  Please enter 12 words separated by spaces
                 </p>
               )}
               {mnemonic && isValidMnemonic(mnemonic) && (
                 <p className="mt-2 text-sm text-green-600">
-                  ✓ 助记词格式正确
+                  ✓ Mnemonic format is correct
                 </p>
               )}
             </div>
           )}
 
-          {/* 私钥输入 */}
+          {/* Private key input */}
           {importMethod === 'privateKey' && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                私钥
+                Private Key
               </label>
               <input
                 type="password"
                 value={privateKey}
                 onChange={(e) => setPrivateKey(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                placeholder="0x... 或 64位十六进制字符"
+                placeholder="0x... or 64-character hexadecimal"
                 disabled={loading}
               />
               {privateKey && !isValidPrivateKey(privateKey) && (
                 <p className="mt-2 text-sm text-red-600">
-                  请输入有效的私钥（64位十六进制，可带0x前缀）
+                  Please enter a valid private key (64-character hexadecimal, 0x prefix optional)
                 </p>
               )}
               {privateKey && isValidPrivateKey(privateKey) && (
                 <p className="mt-2 text-sm text-green-600">
-                  ✓ 私钥格式正确
+                  ✓ Private key format is correct
                 </p>
               )}
             </div>
           )}
 
-          {/* 钱包类型选择 */}
+          {/* Wallet type selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              钱包类型
+              Wallet Type
             </label>
             <div className="grid grid-cols-2 gap-4">
               <button
@@ -200,9 +200,9 @@ export default function ImportWalletPage() {
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <div className="font-medium text-gray-900">🔓 非托管钱包</div>
+                <div className="font-medium text-gray-900">🔓 Non-custodial Wallet</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  私钥不存储在服务器，更安全
+                  Private key not stored on server, more secure
                 </div>
               </button>
               <button
@@ -213,29 +213,29 @@ export default function ImportWalletPage() {
                     : 'border-gray-200 hover:border-gray-300'
                 }`}
               >
-                <div className="font-medium text-gray-900">🔐 托管钱包</div>
+                <div className="font-medium text-gray-900">🔐 Custodial Wallet</div>
                 <div className="text-xs text-gray-500 mt-1">
-                  私钥加密存储，支持服务端转账
+                  Private key encrypted and stored, supports server-side transfers
                 </div>
               </button>
             </div>
           </div>
 
-          {/* 成功提示 */}
+          {/* Success message */}
           {success && (
             <div className="mb-6 rounded-md bg-green-50 p-4">
               <div className="text-sm text-green-700">{success}</div>
             </div>
           )}
 
-          {/* 错误提示 */}
+          {/* Error message */}
           {error && (
             <div className="mb-6 rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-700">{error}</div>
             </div>
           )}
 
-          {/* 按钮 */}
+          {/* Buttons */}
           <div className="flex space-x-4">
             <Button
               onClick={handleImport}
@@ -247,38 +247,38 @@ export default function ImportWalletPage() {
               loading={loading}
               className="flex-1"
             >
-              导入钱包
+              Import Wallet
             </Button>
             <Button
               variant="outline"
               onClick={() => router.push('/wallets')}
               disabled={loading}
             >
-              取消
+              Cancel
             </Button>
           </div>
 
-          {/* 安全提示 */}
+          {/* Security tips */}
           <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <h3 className="text-sm font-medium text-yellow-900 mb-2">
-              ⚠️ 安全提示
+              ⚠️ Security Tips
             </h3>
             <ul className="text-sm text-yellow-800 space-y-1">
-              <li>• 请确保在安全的环境下输入助记词或私钥</li>
-              <li>• 不要在公共场所或不安全的网络下操作</li>
-              <li>• 选择"非托管钱包"时，私钥不会存储在服务器</li>
-              <li>• 选择"托管钱包"时，私钥会加密存储以支持服务端转账</li>
+              <li>• Make sure to enter your mnemonic phrase or private key in a secure environment</li>
+              <li>• Do not operate in public places or on insecure networks</li>
+              <li>• When choosing "Non-custodial Wallet", the private key will not be stored on the server</li>
+              <li>• When choosing "Custodial Wallet", the private key will be encrypted and stored to support server-side transfers</li>
             </ul>
           </div>
         </div>
 
-        {/* 返回按钮 */}
+        {/* Back button */}
         <div className="mt-6">
           <Button
             variant="outline"
             onClick={() => router.push('/wallets')}
           >
-            返回钱包列表
+            Return to Wallet List
           </Button>
         </div>
       </div>
