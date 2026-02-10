@@ -17,9 +17,9 @@ interface Transaction {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: '待处理',
-  CONFIRMED: '已确认',
-  FAILED: '失败'
+  PENDING: 'Pending',
+  CONFIRMED: 'Confirmed',
+  FAILED: 'Failed'
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -56,7 +56,7 @@ export default function TransactionsPage() {
         setTransactions(data.transactions || [])
       }
     } catch (error) {
-      console.error('获取交易记录失败:', error)
+      console.error('Failed to fetch transaction history:', error)
     } finally {
       setLoading(false)
     }
@@ -72,24 +72,23 @@ export default function TransactionsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">加载中...</div>
+        <div className="text-lg">Loading...</div>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">📊 交易记录</h1>
+            <h1 className="text-3xl font-bold text-gray-900">📊 Transaction History</h1>
             <div className="flex items-center space-x-3">
               <Button onClick={() => router.push('/transfer')}>
-                📤 发起转账
+                📤 Send Transfer
               </Button>
               <Button variant="outline" onClick={() => router.push('/dashboard')}>
-                返回Dashboard
+                Back to Dashboard
               </Button>
             </div>
           </div>
@@ -98,7 +97,6 @@ export default function TransactionsPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* 统计卡片 */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-6">
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="p-5">
@@ -109,7 +107,7 @@ export default function TransactionsPage() {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        总交易数
+                        Total Transactions
                       </dt>
                       <dd className="text-2xl font-semibold text-gray-900">
                         {transactions.length}
@@ -129,7 +127,7 @@ export default function TransactionsPage() {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        成功交易
+                        Successful
                       </dt>
                       <dd className="text-2xl font-semibold text-green-600">
                         {transactions.filter(t => t.status === 'CONFIRMED').length}
@@ -149,7 +147,7 @@ export default function TransactionsPage() {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="text-sm font-medium text-gray-500 truncate">
-                        待确认
+                        Pending
                       </dt>
                       <dd className="text-2xl font-semibold text-yellow-600">
                         {transactions.filter(t => t.status === 'PENDING').length}
@@ -161,12 +159,11 @@ export default function TransactionsPage() {
             </div>
           </div>
 
-          {/* 过滤器 */}
           <div className="bg-white shadow rounded-lg p-4 mb-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  交易类型
+                  Transaction Type
                 </label>
                 <div className="flex space-x-2">
                   <Button
@@ -174,54 +171,53 @@ export default function TransactionsPage() {
                     variant={filterType === 'all' ? 'primary' : 'outline'}
                     onClick={() => setFilterType('all')}
                   >
-                    全部
+                    All
                   </Button>
                   <Button
                     size="sm"
                     variant={filterType === 'sent' ? 'primary' : 'outline'}
                     onClick={() => setFilterType('sent')}
                   >
-                    转出
+                    Sent
                   </Button>
                   <Button
                     size="sm"
                     variant={filterType === 'received' ? 'primary' : 'outline'}
                     onClick={() => setFilterType('received')}
                   >
-                    转入
+                    Received
                   </Button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  状态
+                  Status
                 </label>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">全部状态</option>
-                  <option value="PENDING">待处理</option>
-                  <option value="CONFIRMED">已确认</option>
-                  <option value="FAILED">失败</option>
+                  <option value="all">All Statuses</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="CONFIRMED">Confirmed</option>
+                  <option value="FAILED">Failed</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* 交易列表 */}
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
               <h3 className="text-lg font-medium text-gray-900">
-                交易列表 ({filteredTransactions.length})
+                Transaction List ({filteredTransactions.length})
               </h3>
             </div>
 
             {filteredTransactions.length === 0 ? (
               <div className="px-4 py-12 text-center text-gray-500">
-                暂无交易记录
+                No transactions found
               </div>
             ) : (
               <ul className="divide-y divide-gray-200">
@@ -240,13 +236,13 @@ export default function TransactionsPage() {
                         
                         <div className="space-y-1 text-sm text-gray-600">
                           <div className="flex items-center space-x-2">
-                            <span className="text-gray-500">发送方:</span>
+                            <span className="text-gray-500">From:</span>
                             <span className="font-mono">
-                              {tx.fromAddress === 'MINT' ? '系统铸造' : `${tx.fromAddress.slice(0, 8)}...${tx.fromAddress.slice(-6)}`}
+                              {tx.fromAddress === 'MINT' ? 'System Minted' : `${tx.fromAddress.slice(0, 8)}...${tx.fromAddress.slice(-6)}`}
                             </span>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <span className="text-gray-500">接收方:</span>
+                            <span className="text-gray-500">To:</span>
                             <span className="font-mono">
                               {tx.toAddress.slice(0, 8)}...{tx.toAddress.slice(-6)}
                             </span>
@@ -260,7 +256,7 @@ export default function TransactionsPage() {
                               <button
                                 onClick={() => {
                                   navigator.clipboard.writeText(tx.txHash!)
-                                  alert('TxHash已复制')
+                                  alert('TxHash copied')
                                 }}
                                 className="text-blue-600 hover:text-blue-800"
                               >
@@ -271,7 +267,7 @@ export default function TransactionsPage() {
                         </div>
 
                         <div className="mt-2 text-xs text-gray-400">
-                          {new Date(tx.createdAt).toLocaleString('zh-CN')}
+                          {new Date(tx.createdAt).toLocaleString('en-US')}
                         </div>
                       </div>
                     </div>

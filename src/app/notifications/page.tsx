@@ -14,37 +14,36 @@ interface Notification {
   createdAt: string
 }
 
-// 模拟通知数据
 const mockNotifications: Notification[] = [
   {
     id: '1',
     type: 'transaction',
-    title: '转账成功',
-    message: '您向 0x1234...5678 转账 100 NEST 已成功',
+    title: 'Transfer Successful',
+    message: 'Your transfer of 100 NEST to 0x1234...5678 was successful',
     read: false,
     createdAt: new Date(Date.now() - 3600000).toISOString()
   },
   {
     id: '2',
     type: 'kyc',
-    title: 'KYC审核通过',
-    message: '恭喜！您的KYC认证已通过审核',
+    title: 'KYC Verification Approved',
+    message: 'Congratulations! Your KYC verification has been approved',
     read: true,
     createdAt: new Date(Date.now() - 86400000).toISOString()
   },
   {
     id: '3',
     type: 'security',
-    title: '新设备登录',
-    message: '检测到您的账户在新设备登录，如非本人操作请及时修改密码',
+    title: 'New Device Login',
+    message: 'A login from a new device was detected. If this was not you, please change your password immediately',
     read: true,
     createdAt: new Date(Date.now() - 172800000).toISOString()
   },
   {
     id: '4',
     type: 'system',
-    title: '系统维护通知',
-    message: '系统将于今晚23:00-01:00进行维护，期间可能无法使用部分功能',
+    title: 'System Maintenance Notice',
+    message: 'System maintenance will be performed tonight from 23:00-01:00, some features may be unavailable',
     read: true,
     createdAt: new Date(Date.now() - 259200000).toISOString()
   }
@@ -77,7 +76,6 @@ export default function NotificationsPage() {
     return null
   }
 
-  // 获取通知数据
   useEffect(() => {
     fetchNotifications()
   }, [filterType])
@@ -98,7 +96,7 @@ export default function NotificationsPage() {
         setUnreadCount(data.unreadCount)
       }
     } catch (error) {
-      console.error('获取通知失败:', error)
+      console.error('Failed to fetch notifications:', error)
     } finally {
       setLoading(false)
     }
@@ -123,7 +121,7 @@ export default function NotificationsPage() {
         setUnreadCount(prev => Math.max(0, prev - 1))
       }
     } catch (error) {
-      console.error('标记已读失败:', error)
+      console.error('Failed to mark as read:', error)
     }
   }
 
@@ -138,7 +136,7 @@ export default function NotificationsPage() {
         setUnreadCount(0)
       }
     } catch (error) {
-      console.error('标记所有已读失败:', error)
+      console.error('Failed to mark all as read:', error)
     }
   }
 
@@ -156,30 +154,29 @@ export default function NotificationsPage() {
         }
       }
     } catch (error) {
-      console.error('删除通知失败:', error)
+      console.error('Failed to delete notification:', error)
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">🔔 通知中心</h1>
+              <h1 className="text-3xl font-bold text-gray-900">🔔 Notification Center</h1>
               <p className="text-sm text-gray-500 mt-1">
-                {unreadCount > 0 ? `您有 ${unreadCount} 条未读通知` : '所有通知已读'}
+                {unreadCount > 0 ? `You have ${unreadCount} unread notifications` : 'All notifications read'}
               </p>
             </div>
             <div className="flex items-center space-x-3">
               {unreadCount > 0 && (
                 <Button variant="outline" onClick={markAllAsRead}>
-                  全部标记为已读
+                  Mark All as Read
                 </Button>
               )}
               <Button variant="outline" onClick={() => router.push('/dashboard')}>
-                返回Dashboard
+                Back to Dashboard
               </Button>
             </div>
           </div>
@@ -188,7 +185,6 @@ export default function NotificationsPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* 过滤器 */}
           <div className="bg-white shadow rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-2 overflow-x-auto">
               <Button
@@ -196,21 +192,21 @@ export default function NotificationsPage() {
                 variant={filterType === 'all' ? 'primary' : 'outline'}
                 onClick={() => setFilterType('all')}
               >
-                全部 ({notifications.length})
+                All ({notifications.length})
               </Button>
               <Button
                 size="sm"
                 variant={filterType === 'unread' ? 'primary' : 'outline'}
                 onClick={() => setFilterType('unread')}
               >
-                未读 ({unreadCount})
+                Unread ({unreadCount})
               </Button>
               <Button
                 size="sm"
                 variant={filterType === 'transaction' ? 'primary' : 'outline'}
                 onClick={() => setFilterType('transaction')}
               >
-                💰 交易
+                💰 Transactions
               </Button>
               <Button
                 size="sm"
@@ -224,27 +220,26 @@ export default function NotificationsPage() {
                 variant={filterType === 'security' ? 'primary' : 'outline'}
                 onClick={() => setFilterType('security')}
               >
-                🔒 安全
+                🔒 Security
               </Button>
               <Button
                 size="sm"
                 variant={filterType === 'system' ? 'primary' : 'outline'}
                 onClick={() => setFilterType('system')}
               >
-                📢 系统
+                📢 System
               </Button>
             </div>
           </div>
 
-          {/* 通知列表 */}
           {filteredNotifications.length === 0 ? (
             <div className="bg-white shadow rounded-lg p-12 text-center">
               <div className="text-6xl mb-4">🔔</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                暂无通知
+                No Notifications
               </h3>
               <p className="text-gray-500">
-                {filterType === 'unread' ? '所有通知已读' : '还没有收到任何通知'}
+                {filterType === 'unread' ? 'All notifications read' : 'No notifications received yet'}
               </p>
             </div>
           ) : (
@@ -274,7 +269,7 @@ export default function NotificationsPage() {
                           {notification.message}
                         </p>
                         <div className="text-xs text-gray-400">
-                          {new Date(notification.createdAt).toLocaleString('zh-CN')}
+                          {new Date(notification.createdAt).toLocaleString('en-US')}
                         </div>
                       </div>
                     </div>
@@ -286,7 +281,7 @@ export default function NotificationsPage() {
                           variant="outline"
                           onClick={() => markAsRead(notification.id)}
                         >
-                          标记已读
+                          Mark as Read
                         </Button>
                       )}
                       <Button
@@ -294,7 +289,7 @@ export default function NotificationsPage() {
                         variant="outline"
                         onClick={() => deleteNotification(notification.id)}
                       >
-                        删除
+                        Delete
                       </Button>
                     </div>
                   </div>
@@ -303,10 +298,9 @@ export default function NotificationsPage() {
             </div>
           )}
 
-          {/* 说明 */}
           <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              💡 <strong>提示：</strong> 这是通知中心的演示版本。实际项目中，通知数据将从后端API获取，并支持实时推送。
+              💡 <strong>Note:</strong> This is a demo version of the notification center. In production, notification data will be fetched from backend API with real-time push support.
             </p>
           </div>
         </div>

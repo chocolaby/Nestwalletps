@@ -63,7 +63,7 @@ export default function LoginHistoryPage() {
         }))
       }
     } catch (error) {
-      console.error('获取登录历史失败:', error)
+      console.error('Failed to fetch login history:', error)
     } finally {
       setLoading(false)
     }
@@ -83,9 +83,9 @@ export default function LoginHistoryPage() {
   }
 
   const getTypeText = (type: string, success: boolean) => {
-    if (type === 'LOGIN') return success ? '登录成功' : '登录失败'
-    if (type === 'LOGOUT') return '退出登录'
-    return '登录尝试'
+    if (type === 'LOGIN') return success ? 'Login Successful' : 'Login Failed'
+    if (type === 'LOGOUT') return 'Logout'
+    return 'Login Attempt'
   }
 
   const getRiskColor = (riskLevel: string) => {
@@ -98,7 +98,7 @@ export default function LoginHistoryPage() {
   }
 
   const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString('zh-CN', {
+    return new Date(timestamp).toLocaleString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -110,18 +110,17 @@ export default function LoginHistoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">🔐 登录历史</h1>
+              <h1 className="text-3xl font-bold text-gray-900">🔐 Login History</h1>
               <p className="text-sm text-gray-500 mt-1">
-                查看您账户的登录记录和安全活动
+                View your account login records and security activities
               </p>
             </div>
             <Button variant="outline" onClick={() => router.push('/settings')}>
-              返回设置
+              Back to Settings
             </Button>
           </div>
         </div>
@@ -129,46 +128,44 @@ export default function LoginHistoryPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* 统计信息 */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{pagination.total}</div>
-                <div className="text-sm text-gray-500">总登录次数</div>
+                <div className="text-sm text-gray-500">Total Logins</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
                   {history.filter(h => h.success && h.type === 'LOGIN').length}
                 </div>
-                <div className="text-sm text-gray-500">成功登录</div>
+                <div className="text-sm text-gray-500">Successful Logins</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-red-600">
                   {history.filter(h => !h.success && h.type === 'LOGIN').length}
                 </div>
-                <div className="text-sm text-gray-500">失败尝试</div>
+                <div className="text-sm text-gray-500">Failed Attempts</div>
               </div>
             </div>
           </div>
 
-          {/* 登录历史列表 */}
           <div className="bg-white shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">登录记录</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Login Records</h2>
             </div>
 
             {loading && history.length === 0 ? (
               <div className="p-12 text-center">
-                <div className="text-gray-500">加载中...</div>
+                <div className="text-gray-500">Loading...</div>
               </div>
             ) : history.length === 0 ? (
               <div className="p-12 text-center">
                 <div className="text-6xl mb-4">🔐</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  暂无登录记录
+                  No Login Records
                 </h3>
                 <p className="text-gray-500">
-                  还没有登录历史记录
+                  No login history yet
                 </p>
               </div>
             ) : (
@@ -186,8 +183,8 @@ export default function LoginHistoryPage() {
                               {getTypeText(item.type, item.success)}
                             </span>
                             <span className={`px-2 py-1 text-xs rounded-full ${getRiskColor(item.riskLevel)}`}>
-                              {item.riskLevel === 'HIGH' ? '高风险' : 
-                               item.riskLevel === 'MEDIUM' ? '中风险' : '低风险'}
+                              {item.riskLevel === 'HIGH' ? 'High Risk' : 
+                               item.riskLevel === 'MEDIUM' ? 'Medium Risk' : 'Low Risk'}
                             </span>
                           </div>
                           
@@ -215,7 +212,6 @@ export default function LoginHistoryPage() {
               </div>
             )}
 
-            {/* 加载更多 */}
             {pagination.hasMore && (
               <div className="p-6 border-t border-gray-200 text-center">
                 <Button 
@@ -223,7 +219,7 @@ export default function LoginHistoryPage() {
                   onClick={loadMore}
                   loading={loading}
                 >
-                  加载更多
+                  Load More
                 </Button>
               </div>
             )}

@@ -30,19 +30,19 @@ interface LivenessStatus {
 }
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
-  ID_CARD: '身份证',
-  PASSPORT: '护照',
-  DRIVER_LICENSE: '驾驶证',
-  UTILITY_BILL: '水电账单',
-  BANK_STATEMENT: '银行对账单'
+  ID_CARD: 'ID Card',
+  PASSPORT: 'Passport',
+  DRIVER_LICENSE: 'Driver License',
+  UTILITY_BILL: 'Utility Bill',
+  BANK_STATEMENT: 'Bank Statement'
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: '待审核',
-  APPROVED: '已通过',
-  REJECTED: '已拒绝',
-  PASSED: '已通过',
-  FAILED: '未通过'
+  PENDING: 'Pending',
+  APPROVED: 'Approved',
+  REJECTED: 'Rejected',
+  PASSED: 'Passed',
+  FAILED: 'Failed'
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -53,11 +53,10 @@ const STATUS_COLORS: Record<string, string> = {
   FAILED: 'bg-red-100 text-red-800'
 }
 
-// KYC 步骤定义
 const KYC_STEPS = [
-  { id: 'document', label: '证件上传', description: '上传身份证明文件' },
-  { id: 'liveness', label: '活体检测', description: '完成人脸验证' },
-  { id: 'review', label: '人工审核', description: '等待审核通过' }
+  { id: 'document', label: 'Document Upload', description: 'Upload ID documents' },
+  { id: 'liveness', label: 'Liveness Check', description: 'Complete face verification' },
+  { id: 'review', label: 'Manual Review', description: 'Wait for approval' }
 ]
 
 export default function KYCStatusPage() {
@@ -79,7 +78,6 @@ export default function KYCStatusPage() {
 
   const fetchStatus = async () => {
     try {
-      // 并行获取文档状态和活体检测状态
       const [docResponse, livenessResponse] = await Promise.all([
         fetch('/api/kyc/status'),
         fetch('/api/kyc/liveness')
@@ -96,23 +94,22 @@ export default function KYCStatusPage() {
         setLivenessStatus(livenessData)
       }
     } catch (error) {
-      console.error('获取KYC状态失败:', error)
+      console.error('Failed to fetch KYC status:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  // 计算当前步骤
   const getCurrentStep = () => {
     const hasDocuments = documents.length > 0
     const hasApprovedDoc = documents.some(d => d.status === 'APPROVED')
     const hasLiveness = livenessStatus?.hasCompleted
 
-    if (status === 'APPROVED') return 3 // 全部完成
-    if (hasApprovedDoc && hasLiveness) return 2 // 等待最终审核
-    if (hasDocuments && hasLiveness) return 2 // 等待审核
-    if (hasDocuments) return 1 // 需要活体检测
-    return 0 // 需要上传文档
+    if (status === 'APPROVED') return 3
+    if (hasApprovedDoc && hasLiveness) return 2
+    if (hasDocuments && hasLiveness) return 2
+    if (hasDocuments) return 1
+    return 0
   }
 
   const currentStep = getCurrentStep()
@@ -120,7 +117,7 @@ export default function KYCStatusPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">加载中...</div>
+        <div className="text-lg">Loading...</div>
       </div>
     )
   }
@@ -129,17 +126,15 @@ export default function KYCStatusPage() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">KYC认证状态</h1>
+          <h1 className="text-3xl font-bold text-gray-900">KYC Verification Status</h1>
           <p className="mt-2 text-gray-600">
-            查看您的身份认证状态和进度
+            View your identity verification status and progress
           </p>
         </div>
 
-        {/* 步骤进度条 */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">认证进度</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">Verification Progress</h2>
           <div className="relative">
-            {/* 进度线 */}
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200">
               <div
                 className="h-full bg-blue-600 transition-all duration-500"
@@ -147,7 +142,6 @@ export default function KYCStatusPage() {
               />
             </div>
 
-            {/* 步骤点 */}
             <div className="relative flex justify-between">
               {KYC_STEPS.map((step, index) => {
                 const isCompleted = index < currentStep
@@ -184,12 +178,11 @@ export default function KYCStatusPage() {
           </div>
         </div>
 
-        {/* 总体状态卡片 */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                认证状态
+                Verification Status
               </h2>
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[status] || 'bg-gray-100 text-gray-800'}`}>
                 {STATUS_LABELS[status] || status}
@@ -197,10 +190,10 @@ export default function KYCStatusPage() {
             </div>
             <div className="flex space-x-3">
               <Button variant="outline" onClick={() => router.push('/kyc/upload')}>
-                上传文档
+                Upload Documents
               </Button>
               <Button onClick={() => router.push('/kyc/liveness')}>
-                活体检测
+                Liveness Check
               </Button>
             </div>
           </div>
@@ -208,9 +201,9 @@ export default function KYCStatusPage() {
           {status === 'PENDING' && (
             <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
               <p className="text-sm text-yellow-800">
-                {currentStep === 0 && '请先上传身份证明文件'}
-                {currentStep === 1 && '请完成活体检测以继续认证流程'}
-                {currentStep === 2 && '您的文档正在审核中，通常需要1-3个工作日'}
+                {currentStep === 0 && 'Please upload your identity documents first'}
+                {currentStep === 1 && 'Please complete liveness check to continue verification'}
+                {currentStep === 2 && 'Your documents are under review, usually takes 1-3 business days'}
               </p>
             </div>
           )}
@@ -218,7 +211,7 @@ export default function KYCStatusPage() {
           {status === 'APPROVED' && (
             <div className="mt-4 p-4 bg-green-50 rounded-lg">
               <p className="text-sm text-green-800">
-                您的身份已通过认证，可以使用完整功能
+                Your identity has been verified, you can access all features
               </p>
             </div>
           )}
@@ -226,21 +219,20 @@ export default function KYCStatusPage() {
           {status === 'REJECTED' && (
             <div className="mt-4 p-4 bg-red-50 rounded-lg">
               <p className="text-sm text-red-800">
-                您的认证未通过，请重新上传清晰的文档
+                Your verification was rejected, please re-upload clear documents
               </p>
             </div>
           )}
         </div>
 
-        {/* 活体检测状态卡片 */}
         <div className="bg-white rounded-lg shadow mb-6">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
-              活体检测
+              Liveness Check
             </h2>
             {livenessStatus?.hasCompleted && (
               <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-                已完成
+                Completed
               </span>
             )}
           </div>
@@ -254,13 +246,13 @@ export default function KYCStatusPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">活体检测已通过</p>
+                  <p className="text-sm font-medium text-gray-900">Liveness check passed</p>
                   <p className="text-sm text-gray-500">
-                    置信度: {((livenessStatus.latestCheck?.confidence || 0) * 100).toFixed(0)}%
+                    Confidence: {((livenessStatus.latestCheck?.confidence || 0) * 100).toFixed(0)}%
                   </p>
                   {livenessStatus.latestCheck?.completedAt && (
                     <p className="text-xs text-gray-400">
-                      完成时间: {new Date(livenessStatus.latestCheck.completedAt).toLocaleString('zh-CN')}
+                      Completed at: {new Date(livenessStatus.latestCheck.completedAt).toLocaleString('en-US')}
                     </p>
                   )}
                 </div>
@@ -273,21 +265,20 @@ export default function KYCStatusPage() {
                   </svg>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">
-                  尚未完成活体检测，请点击下方按钮开始
+                  Liveness check not completed yet, click below to start
                 </p>
                 <Button onClick={() => router.push('/kyc/liveness')}>
-                  开始活体检测
+                  Start Liveness Check
                 </Button>
               </div>
             )}
           </div>
         </div>
 
-        {/* 文档列表 */}
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
-              已上传文档
+              Uploaded Documents
             </h2>
           </div>
 
@@ -307,13 +298,13 @@ export default function KYCStatusPage() {
                 />
               </svg>
               <p className="mt-2 text-sm text-gray-600">
-                还没有上传任何文档
+                No documents uploaded yet
               </p>
               <Button
                 onClick={() => router.push('/kyc/upload')}
                 className="mt-4"
               >
-                立即上传
+                Upload Now
               </Button>
             </div>
           ) : (
@@ -346,7 +337,7 @@ export default function KYCStatusPage() {
                             {doc.fileName} · {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
                           </p>
                           <p className="text-xs text-gray-400">
-                            {new Date(doc.createdAt).toLocaleString('zh-CN')}
+                            {new Date(doc.createdAt).toLocaleString('en-US')}
                           </p>
                         </div>
                       </div>
@@ -363,13 +354,12 @@ export default function KYCStatusPage() {
           )}
         </div>
 
-        {/* 返回按钮 */}
         <div className="mt-6">
           <Button
             variant="outline"
             onClick={() => router.push('/dashboard')}
           >
-            返回Dashboard
+            Back to Dashboard
           </Button>
         </div>
       </div>

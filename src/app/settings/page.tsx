@@ -13,7 +13,6 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile')
   const [saving, setSaving] = useState(false)
   
-  // 修改密码相关状态
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -21,7 +20,6 @@ export default function SettingsPage() {
   const [passwordSuccess, setPasswordSuccess] = useState('')
   const [changingPassword, setChangingPassword] = useState(false)
 
-  // 2FA相关状态
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
   const [qrCode, setQrCode] = useState('')
   const [manualKey, setManualKey] = useState('')
@@ -29,7 +27,6 @@ export default function SettingsPage() {
   const [twoFactorError, setTwoFactorError] = useState('')
   const [twoFactorSuccess, setTwoFactorSuccess] = useState('')
   
-  // 通知设置状态
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     transactionNotifications: true,
@@ -42,7 +39,6 @@ export default function SettingsPage() {
   const [settingUp2FA, setSettingUp2FA] = useState(false)
   const [showSetup2FA, setShowSetup2FA] = useState(false)
 
-  // 获取通知设置
   useEffect(() => {
     fetchNotificationSettings()
   }, [])
@@ -56,7 +52,7 @@ export default function SettingsPage() {
         setNotificationSettings(data.settings)
       }
     } catch (error) {
-      console.error('获取通知设置失败:', error)
+      console.error('Failed to fetch notification settings:', error)
     }
   }
 
@@ -74,13 +70,13 @@ export default function SettingsPage() {
       const data = await response.json()
       
       if (data.success) {
-        setNotificationSuccess('通知设置已保存')
+        setNotificationSuccess('Notification settings saved')
         setTimeout(() => setNotificationSuccess(''), 3000)
       } else {
-        console.error('保存通知设置失败:', data.error)
+        console.error('Failed to save notification settings:', data.error)
       }
     } catch (error) {
-      console.error('保存通知设置失败:', error)
+      console.error('Failed to save notification settings:', error)
     } finally {
       setSavingNotifications(false)
     }
@@ -98,21 +94,20 @@ export default function SettingsPage() {
     setPasswordError('')
     setPasswordSuccess('')
 
-    // 客户端验证
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setPasswordError('请填写所有字段')
+      setPasswordError('Please fill in all fields')
       setChangingPassword(false)
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setPasswordError('新密码和确认密码不匹配')
+      setPasswordError('New passwords do not match')
       setChangingPassword(false)
       return
     }
 
     if (newPassword.length < 8) {
-      setPasswordError('新密码至少需要8个字符')
+      setPasswordError('New password must be at least 8 characters')
       setChangingPassword(false)
       return
     }
@@ -130,16 +125,15 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || '密码修改失败')
+        throw new Error(error.error || 'Failed to change password')
       }
 
-      setPasswordSuccess('密码修改成功！')
-      // 清空表单
+      setPasswordSuccess('Password changed successfully!')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : '密码修改失败')
+      setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
     } finally {
       setChangingPassword(false)
     }
@@ -159,7 +153,7 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || '生成2FA密钥失败')
+        throw new Error(error.error || 'Failed to generate 2FA key')
       }
 
       const data = await response.json()
@@ -167,7 +161,7 @@ export default function SettingsPage() {
       setManualKey(data.manualEntryKey)
       setShowSetup2FA(true)
     } catch (err) {
-      setTwoFactorError(err instanceof Error ? err.message : '生成2FA密钥失败')
+      setTwoFactorError(err instanceof Error ? err.message : 'Failed to generate 2FA key')
     } finally {
       setSettingUp2FA(false)
     }
@@ -175,7 +169,7 @@ export default function SettingsPage() {
 
   const handleVerify2FA = async () => {
     if (!twoFactorToken) {
-      setTwoFactorError('请输入验证码')
+      setTwoFactorError('Please enter verification code')
       return
     }
 
@@ -194,15 +188,15 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || '验证失败')
+        throw new Error(error.error || 'Verification failed')
       }
 
-      setTwoFactorSuccess('两步验证已成功启用！')
+      setTwoFactorSuccess('Two-factor authentication enabled successfully!')
       setTwoFactorEnabled(true)
       setShowSetup2FA(false)
       setTwoFactorToken('')
     } catch (err) {
-      setTwoFactorError(err instanceof Error ? err.message : '验证失败')
+      setTwoFactorError(err instanceof Error ? err.message : 'Verification failed')
     } finally {
       setSettingUp2FA(false)
     }
@@ -210,7 +204,7 @@ export default function SettingsPage() {
 
   const handleDisable2FA = async () => {
     if (!twoFactorToken || !currentPassword) {
-      setTwoFactorError('请输入验证码和当前密码')
+      setTwoFactorError('Please enter verification code and current password')
       return
     }
 
@@ -229,15 +223,15 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || '禁用失败')
+        throw new Error(error.error || 'Failed to disable')
       }
 
-      setTwoFactorSuccess('两步验证已成功禁用！')
+      setTwoFactorSuccess('Two-factor authentication disabled successfully!')
       setTwoFactorEnabled(false)
       setTwoFactorToken('')
       setCurrentPassword('')
     } catch (err) {
-      setTwoFactorError(err instanceof Error ? err.message : '禁用失败')
+      setTwoFactorError(err instanceof Error ? err.message : 'Failed to disable')
     } finally {
       setSettingUp2FA(false)
     }
@@ -250,13 +244,12 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">⚙️ 设置</h1>
+            <h1 className="text-3xl font-bold text-gray-900">⚙️ Settings</h1>
             <Button variant="outline" onClick={() => router.push('/dashboard')}>
-              返回Dashboard
+              Back to Dashboard
             </Button>
           </div>
         </div>
@@ -265,7 +258,6 @@ export default function SettingsPage() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="flex gap-6">
-            {/* 侧边栏 */}
             <div className="w-64 flex-shrink-0">
               <nav className="bg-white shadow rounded-lg p-4 space-y-2">
                 <button
@@ -274,7 +266,7 @@ export default function SettingsPage() {
                     activeTab === 'profile' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  👤 个人信息
+                  👤 Profile
                 </button>
                 <button
                   onClick={() => setActiveTab('security')}
@@ -282,7 +274,7 @@ export default function SettingsPage() {
                     activeTab === 'security' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  🔒 安全设置
+                  🔒 Security
                 </button>
                 <button
                   onClick={() => setActiveTab('kyc')}
@@ -290,7 +282,7 @@ export default function SettingsPage() {
                     activeTab === 'kyc' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  🆔 KYC认证
+                  🆔 KYC Verification
                 </button>
                 <button
                   onClick={() => setActiveTab('notifications')}
@@ -298,99 +290,94 @@ export default function SettingsPage() {
                     activeTab === 'notifications' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  🔔 通知设置
+                  🔔 Notifications
                 </button>
               </nav>
             </div>
 
-            {/* 内容区域 */}
             <div className="flex-1">
-              {/* 个人信息 */}
               {activeTab === 'profile' && (
                 <div className="bg-white shadow rounded-lg p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-6">个人信息</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6">Profile</h2>
                   
                   <div className="space-y-4 max-w-2xl">
                     <Input
-                      label="邮箱地址"
+                      label="Email Address"
                       value={user.email}
                       disabled
-                      helperText="邮箱地址不可修改"
+                      helperText="Email address cannot be changed"
                     />
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        账户角色
+                        Account Role
                       </label>
                       <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-700">
-                        {user.role === 'ADMIN' ? '🔱 管理员' : '👤 普通用户'}
+                        {user.role === 'ADMIN' ? '🔱 Administrator' : '👤 User'}
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        KYC状态
+                        KYC Status
                       </label>
                       <div className="px-4 py-2 bg-gray-50 rounded-lg">
-                        {user.kycStatus === 'VERIFIED' && <span className="text-green-600">✅ 已认证</span>}
-                        {user.kycStatus === 'PENDING' && <span className="text-yellow-600">⏳ 审核中</span>}
-                        {user.kycStatus === 'NONE' && <span className="text-gray-600">❌ 未认证</span>}
-                        {user.kycStatus === 'REJECTED' && <span className="text-red-600">❌ 已拒绝</span>}
+                        {user.kycStatus === 'VERIFIED' && <span className="text-green-600">✅ Verified</span>}
+                        {user.kycStatus === 'PENDING' && <span className="text-yellow-600">⏳ Pending</span>}
+                        {user.kycStatus === 'NONE' && <span className="text-gray-600">❌ Not Verified</span>}
+                        {user.kycStatus === 'REJECTED' && <span className="text-red-600">❌ Rejected</span>}
                       </div>
                     </div>
 
                     <div className="pt-4">
                       <Button onClick={() => router.push('/kyc/status')}>
-                        查看KYC状态
+                        View KYC Status
                       </Button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* 安全设置 */}
               {activeTab === 'security' && (
                 <div className="bg-white shadow rounded-lg p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-6">安全设置</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6">Security</h2>
                   
                   <div className="space-y-6 max-w-2xl">
                     <div className="border-b border-gray-200 pb-6">
-                      <h3 className="text-sm font-medium text-gray-900 mb-4">修改密码</h3>
+                      <h3 className="text-sm font-medium text-gray-900 mb-4">Change Password</h3>
                       <div className="space-y-4">
                         <Input
-                          label="当前密码"
+                          label="Current Password"
                           type="password"
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
-                          placeholder="请输入当前密码"
+                          placeholder="Enter current password"
                           disabled={changingPassword}
                         />
                         <Input
-                          label="新密码"
+                          label="New Password"
                           type="password"
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="请输入新密码"
-                          helperText="至少8个字符"
+                          placeholder="Enter new password"
+                          helperText="At least 8 characters"
                           disabled={changingPassword}
                         />
                         <Input
-                          label="确认新密码"
+                          label="Confirm New Password"
                           type="password"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="请再次输入新密码"
+                          placeholder="Enter new password again"
                           disabled={changingPassword}
                         />
                         
-                        {/* 成功提示 */}
                         {passwordSuccess && (
                           <div className="rounded-md bg-green-50 p-4">
                             <div className="text-sm text-green-700">{passwordSuccess}</div>
                           </div>
                         )}
                         
-                        {/* 错误提示 */}
                         {passwordError && (
                           <div className="rounded-md bg-red-50 p-4">
                             <div className="text-sm text-red-700">{passwordError}</div>
@@ -402,15 +389,15 @@ export default function SettingsPage() {
                           loading={changingPassword}
                           disabled={!currentPassword || !newPassword || !confirmPassword || changingPassword}
                         >
-                          修改密码
+                          Change Password
                         </Button>
                       </div>
                     </div>
 
                     <div className="border-b border-gray-200 pb-6">
-                      <h3 className="text-sm font-medium text-gray-900 mb-4">两步验证</h3>
+                      <h3 className="text-sm font-medium text-gray-900 mb-4">Two-Factor Authentication</h3>
                       <p className="text-sm text-gray-600 mb-4">
-                        启用两步验证后，登录时需要额外的验证码
+                        When 2FA is enabled, you will need an additional verification code to login
                       </p>
                       
                       {!twoFactorEnabled && !showSetup2FA && (
@@ -419,33 +406,33 @@ export default function SettingsPage() {
                           onClick={handleSetup2FA}
                           loading={settingUp2FA}
                         >
-                          启用两步验证
+                          Enable 2FA
                         </Button>
                       )}
 
                       {showSetup2FA && (
                         <div className="space-y-4">
                           <div className="p-4 bg-blue-50 rounded-lg">
-                            <h4 className="font-medium text-blue-900 mb-2">扫描二维码</h4>
+                            <h4 className="font-medium text-blue-900 mb-2">Scan QR Code</h4>
                             <p className="text-sm text-blue-800 mb-4">
-                              使用Google Authenticator或其他TOTP应用扫描下方二维码
+                              Use Google Authenticator or other TOTP app to scan the QR code below
                             </p>
                             {qrCode && (
                               <div className="flex justify-center mb-4">
                                 <img src={qrCode} alt="2FA QR Code" className="border rounded" />
                               </div>
                             )}
-                            <p className="text-xs text-blue-700 mb-2">手动输入密钥：</p>
+                            <p className="text-xs text-blue-700 mb-2">Manual entry key:</p>
                             <code className="text-xs bg-blue-100 p-2 rounded block break-all">
                               {manualKey}
                             </code>
                           </div>
                           
                           <Input
-                            label="验证码"
+                            label="Verification Code"
                             value={twoFactorToken}
                             onChange={(e) => setTwoFactorToken(e.target.value)}
-                            placeholder="请输入6位验证码"
+                            placeholder="Enter 6-digit code"
                             disabled={settingUp2FA}
                           />
                           
@@ -455,14 +442,14 @@ export default function SettingsPage() {
                               loading={settingUp2FA}
                               disabled={!twoFactorToken}
                             >
-                              验证并启用
+                              Verify and Enable
                             </Button>
                             <Button 
                               variant="outline"
                               onClick={() => setShowSetup2FA(false)}
                               disabled={settingUp2FA}
                             >
-                              取消
+                              Cancel
                             </Button>
                           </div>
                         </div>
@@ -472,24 +459,24 @@ export default function SettingsPage() {
                         <div className="space-y-4">
                           <div className="p-4 bg-green-50 rounded-lg">
                             <p className="text-sm text-green-800">
-                              ✅ 两步验证已启用，您的账户更安全了
+                              ✅ Two-factor authentication is enabled, your account is more secure
                             </p>
                           </div>
                           
                           <div className="space-y-4">
                             <Input
-                              label="当前密码"
+                              label="Current Password"
                               type="password"
                               value={currentPassword}
                               onChange={(e) => setCurrentPassword(e.target.value)}
-                              placeholder="请输入当前密码"
+                              placeholder="Enter current password"
                               disabled={settingUp2FA}
                             />
                             <Input
-                              label="验证码"
+                              label="Verification Code"
                               value={twoFactorToken}
                               onChange={(e) => setTwoFactorToken(e.target.value)}
-                              placeholder="请输入6位验证码"
+                              placeholder="Enter 6-digit code"
                               disabled={settingUp2FA}
                             />
                             <Button 
@@ -498,20 +485,18 @@ export default function SettingsPage() {
                               loading={settingUp2FA}
                               disabled={!twoFactorToken || !currentPassword}
                             >
-                              禁用两步验证
+                              Disable 2FA
                             </Button>
                           </div>
                         </div>
                       )}
 
-                      {/* 成功提示 */}
                       {twoFactorSuccess && (
                         <div className="mt-4 rounded-md bg-green-50 p-4">
                           <div className="text-sm text-green-700">{twoFactorSuccess}</div>
                         </div>
                       )}
                       
-                      {/* 错误提示 */}
                       {twoFactorError && (
                         <div className="mt-4 rounded-md bg-red-50 p-4">
                           <div className="text-sm text-red-700">{twoFactorError}</div>
@@ -520,39 +505,38 @@ export default function SettingsPage() {
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-medium text-gray-900 mb-4">登录历史</h3>
+                      <h3 className="text-sm font-medium text-gray-900 mb-4">Login History</h3>
                       <p className="text-sm text-gray-600 mb-4">
-                        查看您账户的登录记录
+                        View your account login records
                       </p>
                       <Button variant="outline" onClick={() => router.push('/settings/login-history')}>
-                        查看登录历史
+                        View Login History
                       </Button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* KYC认证 */}
               {activeTab === 'kyc' && (
                 <div className="bg-white shadow rounded-lg p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-6">KYC认证</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6">KYC Verification</h2>
                   
                   <div className="max-w-2xl">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                       <p className="text-sm text-blue-800">
-                        KYC（Know Your Customer）认证可以提升账户安全性，解锁更多功能
+                        KYC (Know Your Customer) verification enhances account security and unlocks additional features
                       </p>
                     </div>
 
                     <div className="space-y-4">
                       <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                         <div>
-                          <div className="font-medium text-gray-900">认证状态</div>
+                          <div className="font-medium text-gray-900">Verification Status</div>
                           <div className="text-sm text-gray-500 mt-1">
-                            {user.kycStatus === 'VERIFIED' && '已通过认证'}
-                            {user.kycStatus === 'PENDING' && '审核中，请耐心等待'}
-                            {user.kycStatus === 'NONE' && '未提交认证'}
-                            {user.kycStatus === 'REJECTED' && '认证被拒绝，请重新提交'}
+                            {user.kycStatus === 'VERIFIED' && 'Verification approved'}
+                            {user.kycStatus === 'PENDING' && 'Under review, please wait'}
+                            {user.kycStatus === 'NONE' && 'Not submitted'}
+                            {user.kycStatus === 'REJECTED' && 'Verification rejected, please resubmit'}
                           </div>
                         </div>
                         <div>
@@ -568,10 +552,10 @@ export default function SettingsPage() {
 
                       <div className="flex space-x-3">
                         <Button onClick={() => router.push('/kyc/upload')}>
-                          {user.kycStatus === 'NONE' || user.kycStatus === 'REJECTED' ? '开始认证' : '重新上传'}
+                          {user.kycStatus === 'NONE' || user.kycStatus === 'REJECTED' ? 'Start Verification' : 'Re-upload'}
                         </Button>
                         <Button variant="outline" onClick={() => router.push('/kyc/status')}>
-                          查看详情
+                          View Details
                         </Button>
                       </div>
                     </div>
@@ -579,16 +563,15 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {/* 通知设置 */}
               {activeTab === 'notifications' && (
                 <div className="bg-white shadow rounded-lg p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-6">通知设置</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-6">Notification Settings</h2>
                   
                   <div className="max-w-2xl space-y-4">
                     <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div>
-                        <div className="font-medium text-gray-900">邮件通知</div>
-                        <div className="text-sm text-gray-500">接收交易和账户相关邮件</div>
+                        <div className="font-medium text-gray-900">Email Notifications</div>
+                        <div className="text-sm text-gray-500">Receive transaction and account-related emails</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input 
@@ -603,8 +586,8 @@ export default function SettingsPage() {
 
                     <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div>
-                        <div className="font-medium text-gray-900">交易通知</div>
-                        <div className="text-sm text-gray-500">每笔交易完成后发送通知</div>
+                        <div className="font-medium text-gray-900">Transaction Notifications</div>
+                        <div className="text-sm text-gray-500">Send notification after each transaction completes</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input 
@@ -619,8 +602,8 @@ export default function SettingsPage() {
 
                     <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div>
-                        <div className="font-medium text-gray-900">安全提醒</div>
-                        <div className="text-sm text-gray-500">登录和敏感操作时提醒</div>
+                        <div className="font-medium text-gray-900">Security Alerts</div>
+                        <div className="text-sm text-gray-500">Alerts for login and sensitive operations</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input 
@@ -635,8 +618,8 @@ export default function SettingsPage() {
 
                     <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div>
-                        <div className="font-medium text-gray-900">系统通知</div>
-                        <div className="text-sm text-gray-500">系统维护和重要更新通知</div>
+                        <div className="font-medium text-gray-900">System Notifications</div>
+                        <div className="text-sm text-gray-500">System maintenance and important updates</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input 
@@ -651,8 +634,8 @@ export default function SettingsPage() {
 
                     <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div>
-                        <div className="font-medium text-gray-900">营销通知</div>
-                        <div className="text-sm text-gray-500">产品推广和活动信息</div>
+                        <div className="font-medium text-gray-900">Marketing Notifications</div>
+                        <div className="text-sm text-gray-500">Product promotions and event information</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input 
@@ -665,7 +648,6 @@ export default function SettingsPage() {
                       </label>
                     </div>
 
-                    {/* 成功提示 */}
                     {notificationSuccess && (
                       <div className="rounded-md bg-green-50 p-4">
                         <div className="text-sm text-green-700">{notificationSuccess}</div>
@@ -677,7 +659,7 @@ export default function SettingsPage() {
                         onClick={saveNotificationSettings}
                         loading={savingNotifications}
                       >
-                        保存设置
+                        Save Settings
                       </Button>
                     </div>
                   </div>
