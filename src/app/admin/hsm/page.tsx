@@ -49,11 +49,28 @@ export default function HSMDashboardPage() {
       return
     }
     
-    fetchHSMStatus()
-    const interval = setInterval(fetchHSMStatus, 5000) // Auto-refresh every 5 seconds
+    let pollInterval = 5000 // Start with 5 seconds
+    let intervalId: NodeJS.Timeout
     
-    return () => clearInterval(interval)
-  }, [user, router])
+    const poll = async () => {
+      await fetchHSMStatus()
+      
+      // Adjust polling interval based on pending requests
+      if (pendingRequests.length > 0) {
+        pollInterval = 3000 // Poll faster when there are pending requests
+      } else {
+        pollInterval = 10000 // Poll slower when idle
+      }
+      
+      intervalId = setTimeout(poll, pollInterval)
+    }
+    
+    poll() // Initial fetch
+    
+    return () => {
+      if (intervalId) clearTimeout(intervalId)
+    }
+  }, [user, router, pendingRequests.length])
 
   const fetchHSMStatus = async () => {
     try {

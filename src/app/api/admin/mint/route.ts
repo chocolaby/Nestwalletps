@@ -119,18 +119,24 @@ export async function POST(request: NextRequest) {
       where: { address: contractAddress }
     })
 
-    // Use env var as fallback if contract not in DB
+    // Get token symbol from contract
     let tokenSymbol = 'NEST'
-    if (contract) {
-      // Could extract symbol from ABI if needed
-      tokenSymbol = contract.name
-    } else {
-      // Check if this is the pre-deployed contract
-      const sepoliaAddress = process.env.NEXT_PUBLIC_NEST_TOKEN_ADDRESS
-      if (sepoliaAddress && contractAddress.toLowerCase() !== sepoliaAddress.toLowerCase()) {
-        // Contract not in DB and not the env var contract - warn but continue
-        console.warn(`Contract ${contractAddress} not found in DB, proceeding anyway`)
+    try {
+      const tokenInfo = await getTokenInfo(contractAddress)
+      tokenSymbol = tokenInfo.symbol
+    } catch (error) {
+      console.warn(`Could not fetch token symbol for ${contractAddress}, using default`)
+      // If contract exists in DB, try to extract from name
+      if (contract) {
+        tokenSymbol = contract.name.split(' ')[0] || 'NEST'
       }
+    }
+
+    // Check if this is a valid contract by attempting to get token info
+    const sepoliaAddress = process.env.NEXT_PUBLIC_NEST_TOKEN_ADDRESS
+    if (!contract && sepoliaAddress && contractAddress.toLowerCase() !== sepoliaAddress.toLowerCase()) {
+      // Contract not in DB and not the env var contract - warn but continue
+      console.warn(`Contract ${contractAddress} not found in DB, proceeding anyway`)
     }
 
     // 使用部署者私钥进行铸造

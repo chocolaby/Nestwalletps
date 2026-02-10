@@ -32,7 +32,6 @@ export default function MintPage() {
   const [contracts, setContracts] = useState<ContractOption[]>([])
   const [toAddress, setToAddress] = useState('')
   const [amount, setAmount] = useState('')
-  const [tokenSymbol, setTokenSymbol] = useState('NEST')
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -200,32 +199,16 @@ export default function MintPage() {
                 </p>
               )}
 
-              {/* 金额和代币 */}
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="铸造数量"
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.0"
-                  required
-                  disabled={loading}
-                />
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    代币
-                  </label>
-                  <select
-                    value={tokenSymbol}
-                    onChange={(e) => setTokenSymbol(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    disabled={loading}
-                  >
-                    <option value="NEST">NEST</option>
-                    <option value="ETH">ETH (测试)</option>
-                  </select>
-                </div>
-              </div>
+              {/* 金额 */}
+              <Input
+                label="铸造数量"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.0"
+                required
+                disabled={loading}
+              />
 
               {/* 原因说明 */}
               <div>
