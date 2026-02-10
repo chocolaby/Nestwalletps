@@ -1,4 +1,4 @@
-// HSM/MPC签名模拟服务
+// HSM/MPC signing simulation service
 
 import { ethers } from 'ethers'
 import crypto from 'crypto'
@@ -30,11 +30,11 @@ export interface HSMSigningResult {
   timestamp: Date
 }
 
-// 模拟签名请求存储
+// Simulated signing request storage
 const signingRequests = new Map<string, SigningRequest>()
 const signingApprovals = new Map<string, SigningApproval[]>()
 
-// 模拟HSM密钥存储
+// Simulated HSM key storage
 const HSM_KEYS = {
   'platform': {
     privateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
@@ -48,7 +48,7 @@ const HSM_KEYS = {
   }
 }
 
-// 创建签名请求
+// Create signing request
 export function createSigningRequest(
   userId: string,
   transactionData: any,
@@ -64,7 +64,7 @@ export function createSigningRequest(
     currentApprovals: 0,
     status: 'PENDING',
     createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24小时后过期
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // Expires after 24 hours
   }
   
   signingRequests.set(requestId, request)
@@ -73,7 +73,7 @@ export function createSigningRequest(
   return request
 }
 
-// 批准签名请求
+// Approve signing request
 export function approveSigningRequest(
   requestId: string,
   approverId: string,
@@ -82,27 +82,27 @@ export function approveSigningRequest(
 ): { success: boolean; message: string; request?: SigningRequest } {
   const request = signingRequests.get(requestId)
   if (!request) {
-    return { success: false, message: '签名请求不存在' }
+    return { success: false, message: 'Signing request does not exist' }
   }
   
   if (request.status !== 'PENDING') {
-    return { success: false, message: '签名请求已处理' }
+    return { success: false, message: 'Signing request already processed' }
   }
   
   if (new Date() > request.expiresAt) {
     request.status = 'REJECTED'
-    return { success: false, message: '签名请求已过期' }
+    return { success: false, message: 'Signing request has expired' }
   }
   
   const approvals = signingApprovals.get(requestId) || []
   
-  // 检查是否已经批准过
+  // Check if already approved
   const existingApproval = approvals.find(a => a.approverId === approverId)
   if (existingApproval) {
-    return { success: false, message: '您已经处理过此请求' }
+    return { success: false, message: 'You have already processed this request' }
   }
   
-  // 添加批准记录
+  // Add approval record
   const approval: SigningApproval = {
     requestId,
     approverId,
@@ -114,7 +114,7 @@ export function approveSigningRequest(
   approvals.push(approval)
   signingApprovals.set(requestId, approvals)
   
-  // 更新请求状态
+  // Update request status
   if (!approved) {
     request.status = 'REJECTED'
   } else {
@@ -128,32 +128,32 @@ export function approveSigningRequest(
   
   signingRequests.set(requestId, request)
   
-  return { success: true, message: '处理成功', request }
+  return { success: true, message: 'Processing successful', request }
 }
 
-// 执行HSM签名
+// Execute HSM signing
 export async function executeHSMSigning(
   requestId: string,
   keyType: 'platform' | 'custody' = 'platform'
 ): Promise<{ success: boolean; message: string; result?: HSMSigningResult }> {
   const request = signingRequests.get(requestId)
   if (!request) {
-    return { success: false, message: '签名请求不存在' }
+    return { success: false, message: 'Signing request does not exist' }
   }
   
   if (request.status !== 'APPROVED') {
-    return { success: false, message: '签名请求未获得足够批准' }
+    return { success: false, message: 'Signing request has not received sufficient approvals' }
   }
   
   try {
     const hsmKey = HSM_KEYS[keyType]
     const wallet = new ethers.Wallet(hsmKey.privateKey)
     
-    // 构造交易数据
+    // Construct transaction data
     const txData = request.transactionData
     const messageHash = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify(txData)))
     
-    // 执行签名
+    // Execute signing
     const signature = await wallet.signMessage(ethers.getBytes(messageHash))
     const sig = ethers.Signature.from(signature)
     
@@ -165,39 +165,39 @@ export async function executeHSMSigning(
       timestamp: new Date()
     }
     
-    // 更新请求状态
+    // Update request status
     request.status = 'SIGNED'
     signingRequests.set(requestId, request)
     
-    return { success: true, message: '签名成功', result }
+    return { success: true, message: 'Signing successful', result }
     
   } catch (error) {
     console.error('HSM signing error:', error)
-    return { success: false, message: `签名失败: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    return { success: false, message: `Signing failed: ${error instanceof Error ? error.message : 'Unknown error'}` }
   }
 }
 
-// 获取签名请求
+// Get signing request
 export function getSigningRequest(requestId: string): SigningRequest | null {
   return signingRequests.get(requestId) || null
 }
 
-// 获取用户的签名请求列表
+// Get user's signing request list
 export function getUserSigningRequests(userId: string): SigningRequest[] {
   return Array.from(signingRequests.values()).filter(req => req.userId === userId)
 }
 
-// 获取待批准的签名请求
+// Get pending signing requests
 export function getPendingSigningRequests(): SigningRequest[] {
   return Array.from(signingRequests.values()).filter(req => req.status === 'PENDING')
 }
 
-// 获取签名请求的批准记录
+// Get approval records for signing request
 export function getSigningApprovals(requestId: string): SigningApproval[] {
   return signingApprovals.get(requestId) || []
 }
 
-// 验证签名
+// Verify signature
 export function verifySignature(
   messageHash: string,
   signature: string,
@@ -212,7 +212,7 @@ export function verifySignature(
   }
 }
 
-// 模拟MPC密钥生成
+// Simulate MPC key generation
 export function generateMPCKey(participants: string[], threshold: number): {
   keyId: string
   publicKey: string
@@ -220,14 +220,14 @@ export function generateMPCKey(participants: string[], threshold: number): {
   threshold: number
   shares: Record<string, string>
 } {
-  // 这是一个简化的模拟，实际MPC会更复杂
+  // This is a simplified simulation, actual MPC would be more complex
   const keyId = `mpc_${crypto.randomUUID()}`
   const masterKey = ethers.Wallet.createRandom()
   
-  // 模拟密钥分片
+  // Simulate key sharding
   const shares: Record<string, string> = {}
   participants.forEach((participant, index) => {
-    // 简单的XOR分片模拟
+    // Simple XOR sharding simulation
     const share = crypto.createHash('sha256')
       .update(masterKey.privateKey + participant + index.toString())
       .digest('hex')
@@ -243,7 +243,7 @@ export function generateMPCKey(participants: string[], threshold: number): {
   }
 }
 
-// 清理过期请求
+// Cleanup expired requests
 export function cleanupExpiredRequests(): number {
   const now = new Date()
   let cleaned = 0

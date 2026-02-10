@@ -11,44 +11,44 @@ export interface JWTPayload {
   role: string
 }
 
-// 生成JWT令牌
+// Generate JWT token
 export function generateToken(payload: JWTPayload): string {
-  console.log('🔐 生成Token...', {
+  console.log('🔐 Generating Token...', {
     payload,
     secretPreview: JWT_SECRET.substring(0, 10) + '...'
   })
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
-  console.log('✅ Token生成成功，长度:', token.length)
+  console.log('✅ Token generated successfully, length:', token.length)
   return token
 }
 
-// 验证JWT令牌
+// Verify JWT token
 export function verifyToken(token: string): JWTPayload | null {
   try {
-    console.log('🔑 验证Token...', {
+    console.log('🔑 Verifying Token...', {
       tokenPreview: token.substring(0, 30) + '...',
       secretPreview: JWT_SECRET.substring(0, 10) + '...'
     })
     const result = jwt.verify(token, JWT_SECRET) as JWTPayload
-    console.log('✅ Token验证成功:', result)
+    console.log('✅ Token verified successfully:', result)
     return result
   } catch (error) {
-    console.error('❌ Token验证失败:', error instanceof Error ? error.message : error)
+    console.error('❌ Token verification failed:', error instanceof Error ? error.message : error)
     return null
   }
 }
 
-// 哈希密码
+// Hash password
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12)
 }
 
-// 验证密码
+// Verify password
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
   return bcrypt.compare(password, hashedPassword)
 }
 
-// 从请求中获取用户信息
+// Get user information from request
 export async function getUserFromRequest(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value
   
@@ -79,7 +79,7 @@ export async function getUserFromRequest(request: NextRequest) {
   }
 }
 
-// 检查用户权限
+// Check user permissions
 export function hasPermission(userRole: string, requiredRole: string): boolean {
   const roleHierarchy = {
     USER: 0,

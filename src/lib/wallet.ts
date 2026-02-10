@@ -1,12 +1,12 @@
 import { ethers } from 'ethers'
 import crypto from 'crypto'
 
-// 硬编码加密密钥，确保一致性
+// Hardcoded encryption key for consistency
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'nest-wallet-encryption-key-32chars'
 
 console.log('Wallet module loaded, ENCRYPTION_KEY length:', ENCRYPTION_KEY.length)
 
-// 加密私钥
+// Encrypt private key
 export function encryptPrivateKey(privateKey: string): string {
   const algorithm = 'aes-256-cbc'
   const key = crypto.createHash('sha256').update(ENCRYPTION_KEY).digest()
@@ -19,7 +19,7 @@ export function encryptPrivateKey(privateKey: string): string {
   return iv.toString('hex') + ':' + encrypted
 }
 
-// 解密私钥
+// Decrypt private key
 export function decryptPrivateKey(encryptedPrivateKey: string): string {
   const algorithm = 'aes-256-cbc'
   const key = crypto.createHash('sha256').update(ENCRYPTION_KEY).digest()
@@ -35,7 +35,7 @@ export function decryptPrivateKey(encryptedPrivateKey: string): string {
   return decrypted
 }
 
-// 创建新钱包
+// Create new wallet
 export function createWallet(): { address: string; privateKey: string; mnemonic: string } {
   const wallet = ethers.Wallet.createRandom()
   return {
@@ -45,19 +45,19 @@ export function createWallet(): { address: string; privateKey: string; mnemonic:
   }
 }
 
-// 从私钥恢复钱包
+// Recover wallet from private key
 export function walletFromPrivateKey(privateKey: string): ethers.Wallet {
   return new ethers.Wallet(privateKey)
 }
 
-// 从助记词恢复钱包
+// Recover wallet from mnemonic phrase
 export function walletFromMnemonic(mnemonic: string): ethers.HDNodeWallet {
   return ethers.Wallet.fromPhrase(mnemonic)
 }
 
-// 获取提供者
+// Get provider
 export function getProvider(): ethers.JsonRpcProvider {
-  // 优先使用 Sepolia 测试网，如果设置了本地 RPC 则使用本地
+  // Prefer Sepolia testnet, use local RPC if configured
   const rpcUrl = process.env.RPC_URL ||
     process.env.ANVIL_RPC_URL ||
     'https://ethereum-sepolia-rpc.publicnode.com'
@@ -65,13 +65,13 @@ export function getProvider(): ethers.JsonRpcProvider {
   return new ethers.JsonRpcProvider(rpcUrl)
 }
 
-// 获取连接到提供者的钱包
+// Get wallet connected to provider
 export function getConnectedWallet(privateKey: string): ethers.Wallet {
   const provider = getProvider()
   return new ethers.Wallet(privateKey, provider)
 }
 
-// 获取ETH余额
+// Get ETH balance
 export async function getEthBalance(address: string): Promise<string> {
   try {
     const provider = getProvider()
@@ -83,12 +83,12 @@ export async function getEthBalance(address: string): Promise<string> {
   }
 }
 
-// 获取ERC-20代币余额
+// Get ERC-20 token balance
 export async function getTokenBalance(tokenAddress: string, walletAddress: string): Promise<string> {
   try {
     const provider = getProvider()
     
-    // ERC-20 ABI (只包含balanceOf函数)
+    // ERC-20 ABI (only includes balanceOf function)
     const erc20Abi = [
       'function balanceOf(address owner) view returns (uint256)',
       'function decimals() view returns (uint8)',
@@ -107,7 +107,7 @@ export async function getTokenBalance(tokenAddress: string, walletAddress: strin
   }
 }
 
-// 发送ETH
+// Send ETH
 export async function sendEth(
   fromPrivateKey: string,
   toAddress: string,
@@ -115,7 +115,7 @@ export async function sendEth(
 ): Promise<{ txHash: string; gasUsed: string; gasPrice: string }> {
   const wallet = getConnectedWallet(fromPrivateKey)
   
-  // 检查余额是否足够
+  // Check if balance is sufficient
   const provider = wallet.provider
   if (!provider) {
     throw new Error('Provider not available')
@@ -128,14 +128,14 @@ export async function sendEth(
   const gasCost = gasLimit * gasPrice
   const totalCost = amountWei + gasCost
   
-  console.log('转账详情:')
-  console.log('  余额:', ethers.formatEther(balance), 'ETH')
-  console.log('  转账金额:', amount, 'ETH')
-  console.log('  Gas费用:', ethers.formatEther(gasCost), 'ETH')
-  console.log('  总需要:', ethers.formatEther(totalCost), 'ETH')
+  console.log('Transfer details:')
+  console.log('  Balance:', ethers.formatEther(balance), 'ETH')
+  console.log('  Transfer amount:', amount, 'ETH')
+  console.log('  Gas fee:', ethers.formatEther(gasCost), 'ETH')
+  console.log('  Total required:', ethers.formatEther(totalCost), 'ETH')
   
   if (balance < totalCost) {
-    throw new Error(`余额不足: 需要 ${ethers.formatEther(totalCost)} ETH，但只有 ${ethers.formatEther(balance)} ETH`)
+    throw new Error(`Insufficient balance: need ${ethers.formatEther(totalCost)} ETH, but only have ${ethers.formatEther(balance)} ETH`)
   }
   
   const tx = await wallet.sendTransaction({
@@ -145,11 +145,11 @@ export async function sendEth(
     gasPrice: gasPrice
   })
   
-  console.log('交易已发送:', tx.hash)
+  console.log('Transaction sent:', tx.hash)
   
   const receipt = await tx.wait()
   
-  console.log('交易已确认:', receipt?.status === 1 ? '成功' : '失败')
+  console.log('Transaction confirmed:', receipt?.status === 1 ? 'Success' : 'Failed')
   
   return {
     txHash: tx.hash,
@@ -158,7 +158,7 @@ export async function sendEth(
   }
 }
 
-// 发送ERC-20代币
+// Send ERC-20 tokens
 export async function sendToken(
   fromPrivateKey: string,
   toAddress: string,
@@ -172,19 +172,19 @@ export async function sendToken(
     'function decimals() view returns (uint8)'
   ]
   
-  console.log('发送代币:', { tokenAddress, toAddress, amount })
+  console.log('Sending tokens:', { tokenAddress, toAddress, amount })
   
   const contract = new ethers.Contract(tokenAddress, erc20Abi, wallet)
   const decimals = await contract.decimals()
   const amountInWei = ethers.parseUnits(amount, decimals)
   
-  console.log('代币转账参数:', { decimals, amountInWei: amountInWei.toString() })
+  console.log('Token transfer parameters:', { decimals, amountInWei: amountInWei.toString() })
   
   const tx = await contract.transfer(toAddress, amountInWei)
-  console.log('代币转账已发送:', tx.hash)
+  console.log('Token transfer sent:', tx.hash)
   
   const receipt = await tx.wait()
-  console.log('代币转账已确认')
+  console.log('Token transfer confirmed')
   
   return {
     txHash: tx.hash,

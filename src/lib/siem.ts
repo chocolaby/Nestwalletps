@@ -1,6 +1,6 @@
 import { prisma } from './prisma'
 
-// SQLite 不支持枚举，使用字符串常量
+// SQLite does not support enums, using string constants
 export type SiemEventType = 'LOGIN' | 'LOGOUT' | 'TRANSACTION' | 'WALLET_CREATED' | 'KYC_SUBMITTED' | 'KYC_APPROVED' | 'KYC_REJECTED' | 'ADMIN_ACTION' | 'SECURITY_ALERT'
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
 
@@ -111,7 +111,7 @@ export class SiemLogger {
   }
 }
 
-// 便捷导出函数
+// Convenience export function
 export async function logEvent(data: {
   userId?: string
   eventType: string

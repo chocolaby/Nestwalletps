@@ -1,7 +1,7 @@
 import { ethers } from 'ethers'
 import { getProvider } from './wallet'
 
-// NestToken合约ABI
+// NestToken contract ABI
 const NEST_TOKEN_ABI = [
   "constructor(string memory name, string memory symbol, uint8 decimals_, uint256 initialSupply)",
   "function name() view returns (string)",
@@ -23,8 +23,8 @@ const NEST_TOKEN_ABI = [
   "event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)"
 ]
 
-// 合约字节码 (简化版，实际应该从编译结果获取)
-const NEST_TOKEN_BYTECODE = "0x608060405234801561001057600080fd5b50..." // 这里应该是完整的字节码
+// Contract bytecode (simplified version, should be obtained from compilation result)
+const NEST_TOKEN_BYTECODE = "0x608060405234801561001057600080fd5b50..." // This should be the complete bytecode
 
 interface DeployContractParams {
   name: string
@@ -41,50 +41,50 @@ interface DeployResult {
   blockNumber: number
 }
 
-// 部署合约
+// Deploy contract
 export async function deployContract(params: DeployContractParams): Promise<DeployResult> {
   const { name, symbol, decimals, initialSupply } = params
   
   try {
     const provider = getProvider()
     
-    // 使用预设的部署账户私钥
+    // Use predefined deployer account private key
     const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY || 
       '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
     
     const wallet = new ethers.Wallet(deployerPrivateKey, provider)
     
-    console.log('部署合约，账户:', wallet.address)
+    console.log('Deploying contract, account:', wallet.address)
     
-    // 检查网络连接和余额
+    // Check network connection and balance
     const blockNumber = await provider.getBlockNumber()
     const balance = await provider.getBalance(wallet.address)
     
     if (balance === BigInt(0)) {
-      throw new Error('部署账户余额不足')
+      throw new Error('Deployer account has insufficient balance')
     }
 
-    console.log(`部署账户余额: ${ethers.formatEther(balance)} ETH`)
+    console.log(`Deployer account balance: ${ethers.formatEther(balance)} ETH`)
     
-    // ⚠️ 注意: 实际部署需要完整的合约字节码
-    // 建议使用 Foundry 在命令行部署，然后在这里使用部署好的合约地址
-    // 如果要在代码中部署，需要:
-    // 1. 从 contracts/out/NestToken.sol/NestToken.json 获取完整字节码
-    // 2. 使用 ContractFactory 部署
+    // ⚠️ Note: Actual deployment requires complete contract bytecode
+    // It is recommended to deploy using Foundry from the command line, then use the deployed contract address here
+    // If you want to deploy in code, you need to:
+    // 1. Get complete bytecode from contracts/out/NestToken.sol/NestToken.json
+    // 2. Deploy using ContractFactory
     
     throw new Error(
-      '请使用 Foundry 部署合约：\n' +
+      'Please deploy the contract using Foundry:\n' +
       'cd contracts && forge script script/Deploy.s.sol:DeployScript --rpc-url $RPC_URL --broadcast\n' +
-      '然后将合约地址配置到 NEXT_PUBLIC_NEST_TOKEN_ADDRESS'
+      'Then configure the contract address to NEXT_PUBLIC_NEST_TOKEN_ADDRESS'
     )
     
   } catch (error) {
     console.error('Contract deployment failed:', error)
-    throw new Error(`合约部署失败: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    throw new Error(`Contract deployment failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
-// 获取合约实例
+// Get contract instance
 export function getContractInstance(address: string, signerPrivateKey?: string) {
   const provider = getProvider()
   
@@ -96,7 +96,7 @@ export function getContractInstance(address: string, signerPrivateKey?: string) 
   return new ethers.Contract(address, NEST_TOKEN_ABI, provider)
 }
 
-// 铸造代币（真实实现）
+// Mint tokens (actual implementation)
 export async function mintTokens(
   contractAddress: string,
   toAddress: string,
@@ -104,42 +104,42 @@ export async function mintTokens(
   signerPrivateKey: string
 ): Promise<{ txHash: string; gasUsed: string }> {
   try {
-    console.log(`铸造 ${amount} 代币到地址 ${toAddress}`)
-    console.log(`合约地址: ${contractAddress}`)
+    console.log(`Minting ${amount} tokens to address ${toAddress}`)
+    console.log(`Contract address: ${contractAddress}`)
     
-    // 验证地址格式
+    // Validate address format
     if (!ethers.isAddress(toAddress)) {
-      throw new Error('无效的接收地址')
+      throw new Error('Invalid recipient address')
     }
     
     if (!ethers.isAddress(contractAddress)) {
-      throw new Error('无效的合约地址')
+      throw new Error('Invalid contract address')
     }
     
-    // 验证金额
+    // Validate amount
     const amountNum = parseFloat(amount)
     if (amountNum <= 0) {
-      throw new Error('铸造金额必须大于0')
+      throw new Error('Mint amount must be greater than 0')
     }
     
-    // 获取 provider 和 wallet
+    // Get provider and wallet
     const provider = getProvider()
     const wallet = new ethers.Wallet(signerPrivateKey, provider)
     
-    console.log('铸造账户:', wallet.address)
+    console.log('Minting account:', wallet.address)
     
-    // 创建合约实例
+    // Create contract instance
     const contract = new ethers.Contract(contractAddress, NEST_TOKEN_ABI, wallet)
     
-    // 转换金额为 Wei (假设 18 decimals)
+    // Convert amount to Wei (assuming 18 decimals)
     const amountWei = ethers.parseUnits(amount, 18)
     
-    console.log('发送铸造交易...')
+    console.log('Sending mint transaction...')
     
-    // 发送真实交易
+    // Send actual transaction
     const tx = await contract.mint(toAddress, amountWei)
-    console.log('交易已发送:', tx.hash)
-    console.log('等待确认...')
+    console.log('Transaction sent:', tx.hash)
+    console.log('Waiting for confirmation...')
     
     // 等待交易确认
     const receipt = await tx.wait()
@@ -154,24 +154,24 @@ export async function mintTokens(
     
   } catch (error) {
     console.error('Token minting failed:', error)
-    throw new Error(`代币铸造失败: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    throw new Error(`Token minting failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
-// 获取代币信息（真实实现）
+// Get token info (actual implementation)
 export async function getTokenInfo(contractAddress: string) {
   try {
-    console.log(`获取合约信息: ${contractAddress}`)
+    console.log(`Getting contract info: ${contractAddress}`)
     
-    // 验证合约地址格式
+    // Validate contract address format
     if (!ethers.isAddress(contractAddress)) {
-      throw new Error('无效的合约地址')
+      throw new Error('Invalid contract address')
     }
     
     const provider = getProvider()
     const contract = new ethers.Contract(contractAddress, NEST_TOKEN_ABI, provider)
     
-    // 真实调用合约方法
+    // Actually call contract methods
     const [name, symbol, decimals, totalSupply] = await Promise.all([
       contract.name(),
       contract.symbol(),
@@ -179,7 +179,7 @@ export async function getTokenInfo(contractAddress: string) {
       contract.totalSupply()
     ])
     
-    console.log('代币信息:', { name, symbol, decimals, totalSupply: totalSupply.toString() })
+    console.log('Token info:', { name, symbol, decimals, totalSupply: totalSupply.toString() })
     
     return {
       name,
@@ -190,33 +190,33 @@ export async function getTokenInfo(contractAddress: string) {
     
   } catch (error) {
     console.error('Failed to get token info:', error)
-    throw new Error(`获取代币信息失败: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    throw new Error(`Failed to get token info: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
-// 获取代币余额（真实实现）
+// Get token balance (actual implementation)
 export async function getTokenBalance(contractAddress: string, accountAddress: string): Promise<string> {
   try {
-    console.log(`获取代币余额: ${contractAddress} -> ${accountAddress}`)
+    console.log(`Getting token balance: ${contractAddress} -> ${accountAddress}`)
     
-    // 验证地址格式
+    // Validate address format
     if (!ethers.isAddress(contractAddress)) {
-      throw new Error('无效的合约地址')
+      throw new Error('Invalid contract address')
     }
     
     if (!ethers.isAddress(accountAddress)) {
-      throw new Error('无效的账户地址')
+      throw new Error('Invalid account address')
     }
     
     const provider = getProvider()
     const contract = new ethers.Contract(contractAddress, NEST_TOKEN_ABI, provider)
     
-    // 真实调用 balanceOf
+    // Actually call balanceOf
     const balance = await contract.balanceOf(accountAddress)
     const decimals = await contract.decimals()
     
     const formattedBalance = ethers.formatUnits(balance, decimals)
-    console.log(`余额: ${formattedBalance} NEST`)
+    console.log(`Balance: ${formattedBalance} NEST`)
     
     return formattedBalance
     
