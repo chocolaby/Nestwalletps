@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
 
-// 活体检测挑战类型
+// Liveness detection challenge types
 const CHALLENGE_TYPES = [
-  { type: 'BLINK', label: '请眨眨眼', icon: '👁️', instruction: '请自然地眨眼两次' },
-  { type: 'NOD', label: '请点点头', icon: '🙂', instruction: '请缓慢地点头' },
-  { type: 'SHAKE', label: '请摇摇头', icon: '🙂', instruction: '请缓慢地左右摇头' },
-  { type: 'SMILE', label: '请微笑', icon: '😊', instruction: '请露出微笑' },
+  { type: 'BLINK', label: 'Please Blink', icon: '👁️', instruction: 'Please blink naturally twice' },
+  { type: 'NOD', label: 'Please Nod', icon: '🙂', instruction: 'Please nod slowly' },
+  { type: 'SHAKE', label: 'Please Shake Head', icon: '🙂', instruction: 'Please shake your head left and right slowly' },
+  { type: 'SMILE', label: 'Please Smile', icon: '😊', instruction: 'Please show a smile' },
 ]
 
 type DetectionStatus = 'idle' | 'initializing' | 'detecting' | 'processing' | 'success' | 'failed'
@@ -34,7 +34,7 @@ export default function LivenessCheckPage() {
   const [attempts, setAttempts] = useState(0)
   const maxAttempts = 3
 
-  // 初始化摄像头
+  // Initialize camera
   const initCamera = useCallback(async () => {
     setStatus('initializing')
     setError('')
@@ -58,12 +58,12 @@ export default function LivenessCheckPage() {
       }
     } catch (err) {
       console.error('Camera error:', err)
-      setError('无法访问摄像头，请确保已授予摄像头权限')
+      setError('Unable to access camera, please ensure camera permissions are granted')
       setStatus('failed')
     }
   }, [])
 
-  // 停止摄像头
+  // Stop camera
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop())
@@ -71,33 +71,33 @@ export default function LivenessCheckPage() {
     }
   }, [])
 
-  // 模拟人脸检测（实际项目中应使用 face-api.js 或 TensorFlow.js）
+  // Simulate face detection (in actual projects should use face-api.js or TensorFlow.js)
   const startFaceDetection = useCallback(() => {
-    // 模拟人脸检测延迟
+    // Simulate face detection delay
     setTimeout(() => {
       setFaceDetected(true)
       setCountdown(3)
     }, 1500)
   }, [])
 
-  // 倒计时效果
+  // Countdown effect
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
       return () => clearTimeout(timer)
     } else if (countdown === 0 && faceDetected && status === 'detecting') {
-      // 倒计时结束，开始挑战
+      // Countdown ended, start challenge
       startChallenge()
     }
   }, [countdown, faceDetected, status])
 
-  // 开始挑战
+  // Start challenge
   const startChallenge = useCallback(() => {
     setProgress(0)
     simulateChallengeDetection()
   }, [currentChallenge])
 
-  // 模拟挑战检测（实际项目中应使用真实的人脸动作检测）
+  // Simulate challenge detection (in actual projects should use real face motion detection)
   const simulateChallengeDetection = useCallback(() => {
     let progressValue = 0
     const interval = setInterval(() => {
@@ -106,7 +106,7 @@ export default function LivenessCheckPage() {
         progressValue = 100
         clearInterval(interval)
 
-        // 模拟检测结果（90% 成功率）
+        // Simulate detection result (90% success rate)
         const success = Math.random() > 0.1
         handleChallengeResult(success)
       }
@@ -116,20 +116,20 @@ export default function LivenessCheckPage() {
     return () => clearInterval(interval)
   }, [currentChallenge])
 
-  // 处理挑战结果
+  // Process challenge result
   const handleChallengeResult = useCallback(async (success: boolean) => {
     const newChallengeStatus = [...challengeStatus]
     newChallengeStatus[currentChallenge] = success ? 'passed' : 'failed'
     setChallengeStatus(newChallengeStatus)
 
     if (success) {
-      // 检查是否完成所有挑战
+      // Check if all challenges are complete
       if (currentChallenge >= CHALLENGE_TYPES.length - 1) {
-        // 所有挑战完成
+        // All challenges complete
         setStatus('processing')
         await submitLivenessResult(newChallengeStatus)
       } else {
-        // 进入下一个挑战
+        // Move to next challenge
         setTimeout(() => {
           setCurrentChallenge(prev => prev + 1)
           setProgress(0)
@@ -137,14 +137,14 @@ export default function LivenessCheckPage() {
         }, 1000)
       }
     } else {
-      // 挑战失败
+      // Challenge failed
       setAttempts(prev => prev + 1)
       if (attempts + 1 >= maxAttempts) {
         setStatus('failed')
-        setError('检测失败次数过多，请稍后重试')
+        setError('Too many failed detection attempts, please try again later')
         await submitLivenessResult(newChallengeStatus, true)
       } else {
-        // 重试当前挑战
+        // Retry current challenge
         setTimeout(() => {
           setProgress(0)
           simulateChallengeDetection()
@@ -153,10 +153,10 @@ export default function LivenessCheckPage() {
     }
   }, [currentChallenge, challengeStatus, attempts])
 
-  // 提交活体检测结果
+  // Submit liveness detection result
   const submitLivenessResult = async (results: ('pending' | 'passed' | 'failed')[], failed = false) => {
     try {
-      // 截取人脸图片
+      // Capture face image
       let faceImage = ''
       if (videoRef.current && canvasRef.current) {
         const canvas = canvasRef.current
@@ -184,7 +184,7 @@ export default function LivenessCheckPage() {
       })
 
       if (!response.ok) {
-        throw new Error('提交失败')
+        throw new Error('Submission failed')
       }
 
       const data = await response.json()
@@ -199,12 +199,12 @@ export default function LivenessCheckPage() {
       }
     } catch (err) {
       console.error('Submit error:', err)
-      setError('提交结果失败，请重试')
+      setError('Failed to submit results, please try again')
       setStatus('failed')
     }
   }
 
-  // 重新开始检测
+  // Restart detection
   const restartDetection = () => {
     setStatus('idle')
     setCurrentChallenge(0)
@@ -217,14 +217,14 @@ export default function LivenessCheckPage() {
     stopCamera()
   }
 
-  // 组件卸载时清理
+  // Cleanup on component unmount
   useEffect(() => {
     return () => {
       stopCamera()
     }
   }, [stopCamera])
 
-  // 未登录跳转
+  // Redirect if not logged in
   if (!user) {
     router.push('/auth/login')
     return null
@@ -234,14 +234,14 @@ export default function LivenessCheckPage() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-2xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">活体检测</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Liveness Detection</h1>
           <p className="mt-2 text-gray-600">
-            请按照提示完成人脸验证，确保光线充足且面部清晰可见
+            Please follow the prompts to complete face verification, ensure sufficient lighting and face is clearly visible
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          {/* 摄像头区域 */}
+          {/* Camera area */}
           <div className="relative bg-black aspect-[4/3]">
             {status === 'idle' ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
@@ -250,7 +250,7 @@ export default function LivenessCheckPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <p className="text-gray-400">点击下方按钮开始检测</p>
+                <p className="text-gray-400">Click the button below to start detection</p>
               </div>
             ) : (
               <>
@@ -262,12 +262,12 @@ export default function LivenessCheckPage() {
                 />
                 <canvas ref={canvasRef} className="hidden" />
 
-                {/* 人脸框 */}
+                {/* Face frame */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className={`w-64 h-80 border-4 rounded-[50%] transition-colors duration-300 ${
                     faceDetected ? 'border-green-500' : 'border-white'
                   }`}>
-                    {/* 四角标记 */}
+                    {/* Corner markers */}
                     <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-current rounded-tl-3xl" />
                     <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-current rounded-tr-3xl" />
                     <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-current rounded-bl-3xl" />
@@ -275,7 +275,7 @@ export default function LivenessCheckPage() {
                   </div>
                 </div>
 
-                {/* 倒计时 */}
+                {/* Countdown */}
                 {countdown > 0 && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                     <div className="text-8xl font-bold text-white animate-pulse">
@@ -284,17 +284,17 @@ export default function LivenessCheckPage() {
                   </div>
                 )}
 
-                {/* 处理中 */}
+                {/* Processing */}
                 {status === 'processing' && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                     <div className="text-center text-white">
                       <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                      <p className="text-lg">正在验证...</p>
+                      <p className="text-lg">Verifying...</p>
                     </div>
                   </div>
                 )}
 
-                {/* 成功 */}
+                {/* Success */}
                 {status === 'success' && (
                   <div className="absolute inset-0 flex items-center justify-center bg-green-500/80">
                     <div className="text-center text-white">
@@ -303,13 +303,13 @@ export default function LivenessCheckPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                      <p className="text-2xl font-bold">验证成功</p>
-                      <p className="mt-2">正在跳转...</p>
+                      <p className="text-2xl font-bold">Verification Successful</p>
+                      <p className="mt-2">Redirecting...</p>
                     </div>
                   </div>
                 )}
 
-                {/* 失败 */}
+                {/* Failed */}
                 {status === 'failed' && (
                   <div className="absolute inset-0 flex items-center justify-center bg-red-500/80">
                     <div className="text-center text-white">
@@ -318,8 +318,8 @@ export default function LivenessCheckPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </div>
-                      <p className="text-2xl font-bold">验证失败</p>
-                      <p className="mt-2">{error || '请重新尝试'}</p>
+                      <p className="text-2xl font-bold">Verification Failed</p>
+                      <p className="mt-2">{error || 'Please try again'}</p>
                     </div>
                   </div>
                 )}
@@ -327,7 +327,7 @@ export default function LivenessCheckPage() {
             )}
           </div>
 
-          {/* 挑战提示区域 */}
+          {/* Challenge prompt area */}
           {status === 'detecting' && faceDetected && countdown === 0 && (
             <div className="p-6 bg-blue-50 border-t border-blue-100">
               <div className="flex items-center justify-between mb-4">
@@ -347,7 +347,7 @@ export default function LivenessCheckPage() {
                 </div>
               </div>
 
-              {/* 进度条 */}
+              {/* Progress bar */}
               <div className="w-full bg-blue-200 rounded-full h-2">
                 <div
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
@@ -357,7 +357,7 @@ export default function LivenessCheckPage() {
             </div>
           )}
 
-          {/* 挑战状态指示器 */}
+          {/* Challenge status indicators */}
           <div className="p-4 border-t border-gray-200">
             <div className="flex justify-center space-x-4">
               {CHALLENGE_TYPES.map((challenge, index) => (
@@ -386,19 +386,19 @@ export default function LivenessCheckPage() {
             </div>
           </div>
 
-          {/* 错误提示 */}
+          {/* Error message */}
           {error && status !== 'failed' && (
             <div className="p-4 bg-red-50 border-t border-red-100">
               <p className="text-sm text-red-700 text-center">{error}</p>
             </div>
           )}
 
-          {/* 操作按钮 */}
+          {/* Action buttons */}
           <div className="p-6 border-t border-gray-200">
             <div className="flex space-x-4">
               {status === 'idle' && (
                 <Button onClick={initCamera} className="flex-1">
-                  开始检测
+                  Start Detection
                 </Button>
               )}
 
@@ -406,7 +406,7 @@ export default function LivenessCheckPage() {
                 <>
                   {status === 'failed' && (
                     <Button onClick={restartDetection} className="flex-1">
-                      重新检测
+                      Retry Detection
                     </Button>
                   )}
                   <Button
@@ -414,7 +414,7 @@ export default function LivenessCheckPage() {
                     onClick={() => router.push('/kyc/status')}
                     className="flex-1"
                   >
-                    返回
+                    Back
                   </Button>
                 </>
               )}
@@ -428,21 +428,21 @@ export default function LivenessCheckPage() {
                   }}
                   className="flex-1"
                 >
-                  取消
+                  Cancel
                 </Button>
               )}
             </div>
           </div>
 
-          {/* 说明 */}
+          {/* Instructions */}
           <div className="p-4 bg-gray-50 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">检测说明</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Detection Instructions</h3>
             <ul className="text-xs text-gray-500 space-y-1">
-              <li>• 请确保光线充足，避免逆光</li>
-              <li>• 请将面部置于椭圆框内</li>
-              <li>• 请摘下眼镜、帽子等遮挡物</li>
-              <li>• 按照提示完成相应动作</li>
-              <li>• 每个动作最多尝试 {maxAttempts} 次</li>
+              <li>• Please ensure sufficient lighting and avoid backlighting</li>
+              <li>• Please position your face within the oval frame</li>
+              <li>• Please remove glasses, hats and other obstructions</li>
+              <li>• Complete the corresponding actions as prompted</li>
+              <li>• Maximum {maxAttempts} attempts per action</li>
             </ul>
           </div>
         </div>

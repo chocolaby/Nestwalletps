@@ -83,18 +83,18 @@ export default function DashboardPage() {
       if (response.ok) {
         const data = await response.json()
         if (type === 'NON_CUSTODIAL' && data.mnemonic) {
-          alert(`钱包创建成功！\n\n请妥善保管您的助记词：\n${data.mnemonic}\n\n助记词丢失将无法恢复钱包！`)
+          alert(`Wallet created successfully!\n\nPlease keep your mnemonic phrase safe:\n${data.mnemonic}\n\nLosing your mnemonic phrase means you cannot recover your wallet!`)
         } else if (type === 'CUSTODIAL') {
-          alert('托管钱包创建成功！')
+          alert('Custodial wallet created successfully!')
         }
         fetchWallets()
       } else {
         const error = await response.json()
-        alert(error.error || '创建失败')
+        alert(error.error || 'Creation failed')
       }
     } catch (error) {
-      console.error('钱包创建失败:', error)
-      alert('创建失败，请稍后重试')
+      console.error('Failed to create wallet:', error)
+      alert('Creation failed, please try again later')
     }
   }
 
@@ -106,7 +106,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">加载中...</div>
+        <div className="text-lg">Loading...</div>
       </div>
     )
   }
@@ -119,50 +119,50 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center py-4">
             <h1 className="text-3xl font-bold text-gray-900">NestWallet</h1>
             <div className="bg-white p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold mb-4">快速操作</h3>
+              <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
               <div className="grid grid-cols-2 gap-4">
                 <Button onClick={() => router.push('/wallets')} className="h-16">
-                  💼 钱包管理
+                  💼 Wallet Management
                 </Button>
                 <Button onClick={() => router.push('/transactions')} className="h-16" variant="outline">
-                  📊 交易记录
+                  📊 Transaction History
                 </Button>
                 <Button onClick={() => router.push('/kyc/status')} className="h-16" variant="outline">
-                  🆔 KYC认证
+                  🆔 KYC Verification
                 </Button>
                 <Button onClick={() => router.push('/transfer')} className="h-16" variant="outline">
-                  📤 转账
+                  📤 Transfer
                 </Button>
                 <Button onClick={() => router.push('/fiat')} className="h-16" variant="outline">
-                  💰 法币通道
+                  💰 Fiat Gateway
                 </Button>
                 {user?.role === 'ADMIN' && (
                   <Button onClick={() => router.push('/admin')} className="h-16" variant="secondary">
-                    ⚙️ 管理后台
+                    ⚙️ Admin Panel
                   </Button>
                 )}
                 <Button onClick={() => router.push('/settings')} className="h-16" variant="outline">
-                  ⚙️ 设置
+                  ⚙️ Settings
                 </Button>
                 <Button onClick={() => router.push('/notifications')} className="h-16" variant="outline">
-                  🔔 通知
+                  🔔 Notifications
                 </Button>
               </div>
               
-              {/* 测试提示 */}
+              {/* Test Notice */}
               <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-center">
                   <span className="text-yellow-800 text-sm">
-                    💡 <strong>新用户提示:</strong> 创建钱包后余额为0是正常现象，
-                    可在钱包管理页面点击"💰 测试ETH"获得测试币体验转账功能
+                    💡 <strong>New User Tip:</strong> It's normal for wallets to have zero balance after creation,
+                    you can click "💰 Test ETH" on the wallet management page to get test coins to try transfer features
                   </span>
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600 mr-2">欢迎, {user?.email}</span>
+              <span className="text-sm text-gray-600 mr-2">Welcome, {user?.email}</span>
               <Button variant="outline" size="sm" onClick={handleLogout}>
-                退出
+                Logout
               </Button>
             </div>
           </div>
@@ -174,29 +174,29 @@ export default function DashboardPage() {
           {/* Wallets Section */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">我的钱包</h2>
+              <h2 className="text-2xl font-bold text-gray-900">My Wallets</h2>
               <div className="space-x-2">
                 <Button onClick={() => createWallet('CUSTODIAL')}>
-                  创建托管钱包
+                  Create Custodial Wallet
                 </Button>
                 <Button variant="outline" onClick={() => createWallet('NON_CUSTODIAL')}>
-                  创建非托管钱包
+                  Create Non-Custodial Wallet
                 </Button>
               </div>
             </div>
             
             {wallets.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-6 text-center">
-                <p className="text-gray-500">还没有钱包。创建你的第一个钱包开始使用吧！</p>
+                <p className="text-gray-500">No wallets yet. Create your first wallet to get started!</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {wallets.map((wallet) => (
                   <div key={wallet.id} className="bg-white rounded-lg shadow p-6">
                     <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-lg font-semibold">{wallet.type === 'CUSTODIAL' ? '托管' : '非托管'}钱包</h3>
+                      <h3 className="text-lg font-semibold">{wallet.type === 'CUSTODIAL' ? 'Custodial' : 'Non-Custodial'} Wallet</h3>
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {wallet.type === 'CUSTODIAL' ? '托管' : '非托管'}
+                        {wallet.type === 'CUSTODIAL' ? 'Custodial' : 'Non-Custodial'}
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mb-4 font-mono">
@@ -220,10 +220,10 @@ export default function DashboardPage() {
 
           {/* Recent Transactions */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">最近交易</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Recent Transactions</h2>
             {transactions.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-6 text-center">
-                <p className="text-gray-500">还没有交易记录</p>
+                <p className="text-gray-500">No transaction history yet</p>
               </div>
             ) : (
               <div className="bg-white shadow overflow-hidden sm:rounded-md">
@@ -249,11 +249,11 @@ export default function DashboardPage() {
                           <div className="mt-2 flex">
                             <div className="flex items-center text-sm text-gray-500">
                               <p className="font-mono">
-                                从: {tx.fromAddress.slice(0, 6)}...{tx.fromAddress.slice(-4)}
+                                From: {tx.fromAddress.slice(0, 6)}...{tx.fromAddress.slice(-4)}
                               </p>
                               <span className="mx-2">→</span>
                               <p className="font-mono">
-                                到: {tx.toAddress.slice(0, 6)}...{tx.toAddress.slice(-4)}
+                                To: {tx.toAddress.slice(0, 6)}...{tx.toAddress.slice(-4)}
                               </p>
                             </div>
                           </div>

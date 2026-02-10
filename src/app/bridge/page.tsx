@@ -28,10 +28,10 @@ const SUPPORTED_CHAINS = [
 ]
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: '待处理',
-  PROCESSING: '处理中',
-  COMPLETED: '已完成',
-  FAILED: '失败'
+  PENDING: 'Pending',
+  PROCESSING: 'Processing',
+  COMPLETED: 'Completed',
+  FAILED: 'Failed'
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -55,7 +55,7 @@ export default function BridgePage() {
   const [success, setSuccess] = useState('')
   const [transactions, setTransactions] = useState<BridgeTransaction[]>([])
   const [estimatedFee, setEstimatedFee] = useState('0.005')
-  const [estimatedTime, setEstimatedTime] = useState('5-10分钟')
+  const [estimatedTime, setEstimatedTime] = useState('5-10 minutes')
 
   useEffect(() => {
     if (!user) {
@@ -73,14 +73,14 @@ export default function BridgePage() {
       const calculatedFee = Math.max(baseAmount * feePercentage, 0.001)
       setEstimatedFee(calculatedFee.toFixed(6))
       
-      // 模拟不同链的处理时间
+      // Simulate different chain processing times
       const timeMap: Record<string, string> = {
-        'ethereum': '10-15分钟',
-        'bsc': '3-5分钟',
-        'polygon': '2-3分钟',
-        'arbitrum': '1-2分钟'
+        'ethereum': '10-15 minutes',
+        'bsc': '3-5 minutes',
+        'polygon': '2-3 minutes',
+        'arbitrum': '1-2 minutes'
       }
-      setEstimatedTime(timeMap[toChain] || '5-10分钟')
+      setEstimatedTime(timeMap[toChain] || '5-10 minutes')
     }
   }, [amount, fromChain, toChain])
 
@@ -92,7 +92,7 @@ export default function BridgePage() {
         setTransactions(data.transactions || [])
       }
     } catch (error) {
-      console.error('获取桥接记录失败:', error)
+      console.error('Failed to fetch bridge records:', error)
     }
   }
 
@@ -116,20 +116,20 @@ export default function BridgePage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || '桥接失败')
+        throw new Error(error.error || 'Bridge failed')
       }
 
       const data = await response.json()
-      setSuccess(`桥接请求已提交！预计 ${estimatedTime} 内完成`)
+      setSuccess(`Bridge request submitted! Expected completion in ${estimatedTime}`)
       
-      // 清空表单
+      // Clear form
       setAmount('')
       setToAddress('')
       
-      // 刷新记录
+      // Refresh records
       fetchTransactions()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '桥接失败')
+      setError(err instanceof Error ? err.message : 'Bridge failed')
     } finally {
       setLoading(false)
     }
@@ -145,9 +145,9 @@ export default function BridgePage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">🌉 跨链桥接</h1>
+            <h1 className="text-3xl font-bold text-gray-900">🌉 Cross-chain Bridge</h1>
             <Button variant="outline" onClick={() => router.push('/dashboard')}>
-              返回Dashboard
+              Back to Dashboard
             </Button>
           </div>
         </div>
@@ -155,18 +155,18 @@ export default function BridgePage() {
 
       <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* 桥接表单 */}
+          {/* Bridge form */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              跨链转账
+              Cross-chain Transfer
             </h2>
 
             <div className="space-y-6">
-              {/* 链选择 */}
+              {/* Chain selection */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    源链
+                    Source Chain
                   </label>
                   <select
                     value={fromChain}
@@ -183,7 +183,7 @@ export default function BridgePage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    目标链
+                    Target Chain
                   </label>
                   <select
                     value={toChain}
@@ -200,10 +200,10 @@ export default function BridgePage() {
                 </div>
               </div>
 
-              {/* 金额和代币 */}
+              {/* Amount and token */}
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="转账金额"
+                  label="Transfer Amount"
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
@@ -213,7 +213,7 @@ export default function BridgePage() {
                 />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    代币
+                    Token
                   </label>
                   <select
                     value={tokenSymbol}
@@ -229,9 +229,9 @@ export default function BridgePage() {
                 </div>
               </div>
 
-              {/* 接收地址 */}
+              {/* Receiving address */}
               <Input
-                label="接收地址"
+                label="Receiving Address"
                 value={toAddress}
                 onChange={(e) => setToAddress(e.target.value)}
                 placeholder="0x..."
@@ -239,35 +239,35 @@ export default function BridgePage() {
                 disabled={loading}
               />
 
-              {/* 费用预估 */}
+              {/* Fee estimation */}
               {amount && parseFloat(amount) > 0 && (
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h3 className="text-sm font-medium text-blue-900 mb-2">
-                    📊 费用预估
+                    📊 Fee Estimation
                   </h3>
                   <div className="space-y-1 text-sm text-blue-800">
-                    <p>桥接费用: {estimatedFee} {tokenSymbol}</p>
-                    <p>预计到账: {(parseFloat(amount) - parseFloat(estimatedFee)).toFixed(6)} {tokenSymbol}</p>
-                    <p>预计时间: {estimatedTime}</p>
+                    <p>Bridge Fee: {estimatedFee} {tokenSymbol}</p>
+                    <p>Expected Receipt: {(parseFloat(amount) - parseFloat(estimatedFee)).toFixed(6)} {tokenSymbol}</p>
+                    <p>Estimated Time: {estimatedTime}</p>
                   </div>
                 </div>
               )}
 
-              {/* 成功提示 */}
+              {/* Success message */}
               {success && (
                 <div className="rounded-md bg-green-50 p-4">
                   <div className="text-sm text-green-700">{success}</div>
                 </div>
               )}
 
-              {/* 错误提示 */}
+              {/* Error message */}
               {error && (
                 <div className="rounded-md bg-red-50 p-4">
                   <div className="text-sm text-red-700">{error}</div>
                 </div>
               )}
 
-              {/* 按钮 */}
+              {/* Button */}
               <Button
                 onClick={handleBridge}
                 disabled={
@@ -280,35 +280,35 @@ export default function BridgePage() {
                 loading={loading}
                 className="w-full"
               >
-                开始桥接
+                Start Bridge
               </Button>
             </div>
 
-            {/* 说明 */}
+            {/* Instructions */}
             <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
               <h3 className="text-sm font-medium text-yellow-900 mb-2">
-                ⚠️ 重要提示
+                ⚠️ Important Notice
               </h3>
               <ul className="text-sm text-yellow-800 space-y-1">
-                <li>• 这是桥接功能的模拟演示</li>
-                <li>• 请确保目标地址支持所选代币</li>
-                <li>• 跨链转账不可撤销，请仔细核对信息</li>
-                <li>• 实际费用可能因网络拥堵而变化</li>
+                <li>• This is a simulated demo of the bridge functionality</li>
+                <li>• Please ensure the target address supports the selected token</li>
+                <li>• Cross-chain transfers are irreversible, please verify information carefully</li>
+                <li>• Actual fees may vary due to network congestion</li>
               </ul>
             </div>
           </div>
 
-          {/* 桥接历史 */}
+          {/* Bridge history */}
           <div className="bg-white shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
-                桥接记录
+                Bridge Records
               </h2>
             </div>
 
             {transactions.length === 0 ? (
               <div className="px-6 py-12 text-center text-gray-500">
-                暂无桥接记录
+                No bridge records
               </div>
             ) : (
               <div className="divide-y divide-gray-200">
@@ -328,7 +328,7 @@ export default function BridgePage() {
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">
-                          到: {tx.toAddress.slice(0, 6)}...{tx.toAddress.slice(-4)}
+                          To: {tx.toAddress.slice(0, 6)}...{tx.toAddress.slice(-4)}
                         </p>
                         <p className="text-xs text-gray-400">
                           {new Date(tx.createdAt).toLocaleString('zh-CN')}

@@ -29,7 +29,7 @@ export default function ContractsPage() {
   const [deploying, setDeploying] = useState(false)
   const [minting, setMinting] = useState(false)
   
-  // 部署表单状态
+  // Deploy form state
   const [deployForm, setDeployForm] = useState({
     name: '',
     symbol: '',
@@ -37,7 +37,7 @@ export default function ContractsPage() {
     initialSupply: 1000000
   })
   
-  // 铸造表单状态
+  // Mint form state
   const [mintForm, setMintForm] = useState({
     contractAddress: '',
     toAddress: '',
@@ -63,13 +63,13 @@ export default function ContractsPage() {
         const data = await response.json()
         setContracts(data.contracts || [])
         
-        // 获取每个合约的代币信息
+        // Get token info for each contract
         for (const contract of data.contracts || []) {
           fetchTokenInfo(contract.address)
         }
       }
     } catch (error) {
-      console.error('获取合约列表失败:', error)
+      console.error('Failed to fetch contract list:', error)
     } finally {
       setLoading(false)
     }
@@ -86,7 +86,7 @@ export default function ContractsPage() {
         }))
       }
     } catch (error) {
-      console.error('获取代币信息失败:', error)
+      console.error('Failed to fetch token info:', error)
     }
   }
 
@@ -103,15 +103,15 @@ export default function ContractsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        alert(`合约部署成功！\n地址: ${data.contract.address}\n交易哈希: ${data.contract.txHash}`)
+        alert(`Contract deployed successfully!\nAddress: ${data.contract.address}\nTx Hash: ${data.contract.txHash}`)
         setDeployForm({ name: '', symbol: '', decimals: 18, initialSupply: 1000000 })
         fetchContracts()
       } else {
         const error = await response.json()
-        alert(error.error || '部署失败')
+        alert(error.error || 'Deployment failed')
       }
     } catch (error) {
-      alert('部署失败')
+      alert('Deployment failed')
     } finally {
       setDeploying(false)
     }
@@ -130,18 +130,18 @@ export default function ContractsPage() {
 
       if (response.ok) {
         const data = await response.json()
-        alert(`代币铸造成功！\n交易哈希: ${data.transaction.txHash}`)
+        alert(`Token minted successfully!\nTx Hash: ${data.transaction.txHash}`)
         setMintForm({ contractAddress: '', toAddress: '', amount: '', reason: '' })
-        // 刷新代币信息
+        // Refresh token info
         if (mintForm.contractAddress) {
           fetchTokenInfo(mintForm.contractAddress)
         }
       } else {
         const error = await response.json()
-        alert(error.error || '铸造失败')
+        alert(error.error || 'Minting failed')
       }
     } catch (error) {
-      alert('铸造失败')
+      alert('Minting failed')
     } finally {
       setMinting(false)
     }
@@ -150,7 +150,7 @@ export default function ContractsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">加载中...</div>
+        <div className="text-lg">Loading...</div>
       </div>
     )
   }
@@ -161,9 +161,9 @@ export default function ContractsPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">🏗️ 合约管理</h1>
+            <h1 className="text-3xl font-bold text-gray-900">🏗️ Contract Management</h1>
             <Button variant="outline" onClick={() => router.push('/admin')}>
-              返回管理后台
+              Back to Admin
             </Button>
           </div>
         </div>
@@ -172,42 +172,42 @@ export default function ContractsPage() {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           
-          {/* 部署新合约 */}
+          {/* Deploy New Contract */}
           <div className="bg-white shadow rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">部署新代币合约</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Deploy New Token Contract</h2>
             
             <form onSubmit={handleDeploy} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  代币名称
+                  Token Name
                 </label>
                 <input
                   type="text"
                   value={deployForm.name}
                   onChange={(e) => setDeployForm(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例如: NestToken"
+                  placeholder="e.g., NestToken"
                   required
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  代币符号
+                  Token Symbol
                 </label>
                 <input
                   type="text"
                   value={deployForm.symbol}
                   onChange={(e) => setDeployForm(prev => ({ ...prev, symbol: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例如: NEST"
+                  placeholder="e.g., NEST"
                   required
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  小数位数
+                  Decimals
                 </label>
                 <input
                   type="number"
@@ -222,7 +222,7 @@ export default function ContractsPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  初始供应量
+                  Initial Supply
                 </label>
                 <input
                   type="number"
@@ -236,20 +236,20 @@ export default function ContractsPage() {
               
               <div className="sm:col-span-2">
                 <Button type="submit" loading={deploying} className="w-full">
-                  {deploying ? '部署中...' : '部署合约'}
+                  {deploying ? 'Deploying...' : 'Deploy Contract'}
                 </Button>
               </div>
             </form>
           </div>
 
-          {/* 铸造代币 */}
+          {/* Mint Tokens */}
           <div className="bg-white shadow rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">铸造代币</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Mint Tokens</h2>
             
             <form onSubmit={handleMint} className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  合约地址
+                  Contract Address
                 </label>
                 <select
                   value={mintForm.contractAddress}
@@ -257,7 +257,7 @@ export default function ContractsPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="">选择合约</option>
+                  <option value="">Select Contract</option>
                   {contracts.map((contract) => (
                     <option key={contract.id} value={contract.address}>
                       {contract.name} ({contract.address.slice(0, 10)}...)
@@ -268,7 +268,7 @@ export default function ContractsPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  接收地址
+                  Recipient Address
                 </label>
                 <input
                   type="text"
@@ -282,47 +282,47 @@ export default function ContractsPage() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  铸造数量
+                  Amount to Mint
                 </label>
                 <input
                   type="text"
                   value={mintForm.amount}
                   onChange={(e) => setMintForm(prev => ({ ...prev, amount: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例如: 1000"
+                  placeholder="e.g., 1000"
                   required
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  铸造原因
+                  Reason for Minting
                 </label>
                 <textarea
                   value={mintForm.reason}
                   onChange={(e) => setMintForm(prev => ({ ...prev, reason: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
-                  placeholder="说明铸造原因..."
+                  placeholder="Explain the reason for minting..."
                   required
                 />
               </div>
               
               <Button type="submit" loading={minting} className="w-full">
-                {minting ? '铸造中...' : '铸造代币'}
+                {minting ? 'Minting...' : 'Mint Tokens'}
               </Button>
             </form>
           </div>
 
-          {/* 已部署合约列表 */}
+          {/* Deployed Contracts List */}
           <div className="bg-white shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">已部署合约</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Deployed Contracts</h2>
             </div>
             
             {contracts.length === 0 ? (
               <div className="px-6 py-12 text-center">
-                <p className="text-gray-500">还没有部署任何合约</p>
+                <p className="text-gray-500">No contracts deployed yet</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-200">
@@ -340,13 +340,13 @@ export default function ContractsPage() {
                           </p>
                           {info && (
                             <div className="mt-2 text-sm text-gray-600">
-                              <span className="mr-4">符号: {info.symbol}</span>
-                              <span className="mr-4">小数位: {info.decimals}</span>
-                              <span>总供应量: {parseFloat(info.totalSupply).toLocaleString()}</span>
+                              <span className="mr-4">Symbol: {info.symbol}</span>
+                              <span className="mr-4">Decimals: {info.decimals}</span>
+                              <span>Total Supply: {parseFloat(info.totalSupply).toLocaleString()}</span>
                             </div>
                           )}
                           <p className="text-xs text-gray-400 mt-1">
-                            部署于 {new Date(contract.createdAt).toLocaleString('zh-CN')}
+                            Deployed on {new Date(contract.createdAt).toLocaleString('en-US')}
                           </p>
                         </div>
                         <div className="flex space-x-2">
@@ -355,10 +355,10 @@ export default function ContractsPage() {
                             variant="outline"
                             onClick={() => {
                               navigator.clipboard.writeText(contract.address)
-                              alert('地址已复制')
+                              alert('Address copied')
                             }}
                           >
-                            📋 复制地址
+                            📋 Copy Address
                           </Button>
                           <Button
                             size="sm"
@@ -368,7 +368,7 @@ export default function ContractsPage() {
                               contractAddress: contract.address 
                             }))}
                           >
-                            💰 铸造
+                            💰 Mint
                           </Button>
                         </div>
                       </div>

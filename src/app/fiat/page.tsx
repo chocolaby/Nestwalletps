@@ -17,11 +17,11 @@ interface FiatOrder {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  PENDING: '待处理',
-  PROCESSING: '处理中',
-  COMPLETED: '已完成',
-  FAILED: '失败',
-  CANCELLED: '已取消'
+  PENDING: 'Pending',
+  PROCESSING: 'Processing',
+  COMPLETED: 'Completed',
+  FAILED: 'Failed',
+  CANCELLED: 'Cancelled'
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -65,7 +65,7 @@ export default function FiatPage() {
         setOrders(data.orders || [])
       }
     } catch (error) {
-      console.error('获取订单失败:', error)
+      console.error('Failed to fetch orders:', error)
     }
   }
 
@@ -89,22 +89,22 @@ export default function FiatPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || '入金失败')
+        throw new Error(error.error || 'Deposit failed')
       }
 
       const data = await response.json()
-      setSuccess(`入金申请已提交！订单号: ${data.order.id}`)
+      setSuccess(`Deposit request submitted! Order ID: ${data.order.id}`)
       
-      // 清空表单
+      // Clear form
       setAmount('')
       setBankAccount('')
       setBankName('')
       setAccountHolder('')
       
-      // 刷新订单
+      // Refresh orders
       fetchOrders()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '入金失败')
+      setError(err instanceof Error ? err.message : 'Deposit failed')
     } finally {
       setLoading(false)
     }
@@ -131,22 +131,22 @@ export default function FiatPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || '出金失败')
+        throw new Error(error.error || 'Withdrawal failed')
       }
 
       const data = await response.json()
-      setSuccess(`出金申请已提交！订单号: ${data.order.id}`)
+      setSuccess(`Withdrawal request submitted! Order ID: ${data.order.id}`)
       
-      // 清空表单
+      // Clear form
       setAmount('')
       setBankAccount('')
       setBankName('')
       setAccountHolder('')
       
-      // 刷新订单
+      // Refresh orders
       fetchOrders()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '出金失败')
+      setError(err instanceof Error ? err.message : 'Withdrawal failed')
     } finally {
       setLoading(false)
     }
@@ -158,9 +158,9 @@ export default function FiatPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">法币通道</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Fiat Gateway</h1>
             <Button variant="outline" onClick={() => router.push('/dashboard')}>
-              返回Dashboard
+              Back to Dashboard
             </Button>
           </div>
         </div>
@@ -168,7 +168,7 @@ export default function FiatPage() {
 
       <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* 标签页 */}
+          {/* Tabs */}
           <div className="bg-white shadow rounded-lg mb-6">
             <div className="border-b border-gray-200">
               <nav className="-mb-px flex">
@@ -180,7 +180,7 @@ export default function FiatPage() {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm`}
                 >
-                  💰 入金
+                  💰 Deposit
                 </button>
                 <button
                   onClick={() => setActiveTab('withdraw')}
@@ -190,17 +190,17 @@ export default function FiatPage() {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   } w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm`}
                 >
-                  💸 出金
+                  💸 Withdrawal
                 </button>
               </nav>
             </div>
 
             <div className="p-6">
-              {/* 表单 */}
+              {/* Form */}
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <Input
-                    label="金额"
+                    label="Amount"
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
@@ -210,7 +210,7 @@ export default function FiatPage() {
                   />
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      币种
+                      Currency
                     </label>
                     <select
                       value={currency}
@@ -218,17 +218,17 @@ export default function FiatPage() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       disabled={loading}
                     >
-                      <option value="CNY">CNY (人民币)</option>
-                      <option value="USD">USD (美元)</option>
-                      <option value="EUR">EUR (欧元)</option>
+                      <option value="CNY">CNY (RMB)</option>
+                      <option value="USD">USD (US Dollar)</option>
+                      <option value="EUR">EUR (Euro)</option>
                     </select>
                   </div>
                 </div>
 
-                {/* 支付方式选择 */}
+                {/* Payment method selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    支付方式
+                    Payment Method
                   </label>
                   <div className="grid grid-cols-3 gap-3">
                     <button
@@ -242,7 +242,7 @@ export default function FiatPage() {
                       disabled={loading}
                     >
                       <div className="text-xl mb-1">🏦</div>
-                      <div className="text-xs font-medium">银行卡</div>
+                      <div className="text-xs font-medium">Bank Card</div>
                     </button>
                     <button
                       type="button"
@@ -255,7 +255,7 @@ export default function FiatPage() {
                       disabled={loading}
                     >
                       <div className="text-xl mb-1">💳</div>
-                      <div className="text-xs font-medium">支付宝</div>
+                      <div className="text-xs font-medium">Alipay</div>
                     </button>
                     <button
                       type="button"
@@ -268,53 +268,53 @@ export default function FiatPage() {
                       disabled={loading}
                     >
                       <div className="text-xl mb-1">💬</div>
-                      <div className="text-xs font-medium">微信</div>
+                      <div className="text-xs font-medium">WeChat</div>
                     </button>
                   </div>
                 </div>
 
                 <Input
-                  label="银行账号"
+                  label="Bank Account"
                   value={bankAccount}
                   onChange={(e) => setBankAccount(e.target.value)}
-                  placeholder="请输入银行账号"
+                  placeholder="Please enter bank account number"
                   required
                   disabled={loading}
                 />
 
                 <Input
-                  label="持卡人姓名"
+                  label="Account Holder Name"
                   value={accountHolder}
                   onChange={(e) => setAccountHolder(e.target.value)}
-                  placeholder="请输入持卡人姓名"
+                  placeholder="Please enter account holder name"
                   required
                   disabled={loading}
                 />
 
                 <Input
-                  label="开户行"
+                  label="Bank Name"
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
-                  placeholder="例如: 中国工商银行"
+                  placeholder="e.g., Industrial and Commercial Bank of China"
                   required
                   disabled={loading}
                 />
 
-                {/* 成功提示 */}
+                {/* Success message */}
                 {success && (
                   <div className="rounded-md bg-green-50 p-4">
                     <div className="text-sm text-green-700">{success}</div>
                   </div>
                 )}
 
-                {/* 错误提示 */}
+                {/* Error message */}
                 {error && (
                   <div className="rounded-md bg-red-50 p-4">
                     <div className="text-sm text-red-700">{error}</div>
                   </div>
                 )}
 
-                {/* 按钮 */}
+                {/* Button */}
                 <Button
                   onClick={activeTab === 'deposit' ? handleDeposit : handleWithdraw}
                   disabled={
@@ -328,29 +328,29 @@ export default function FiatPage() {
                   loading={loading}
                   className="w-full"
                 >
-                  {activeTab === 'deposit' ? '提交入金申请' : '提交出金申请'}
+                  {activeTab === 'deposit' ? 'Submit Deposit Request' : 'Submit Withdrawal Request'}
                 </Button>
               </div>
 
-              {/* 说明 */}
+              {/* Instructions */}
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <h3 className="text-sm font-medium text-blue-900 mb-2">
-                  📝 {activeTab === 'deposit' ? '入金' : '出金'}说明
+                  📝 {activeTab === 'deposit' ? 'Deposit' : 'Withdrawal'} Instructions
                 </h3>
                 <ul className="text-sm text-blue-800 space-y-1">
                   {activeTab === 'deposit' ? (
                     <>
-                      <li>• 入金通常在1-3个工作日内到账</li>
-                      <li>• 请使用本人实名认证的银行账户</li>
-                      <li>• 单笔最低入金金额: 100 CNY</li>
-                      <li>• 入金手续费: 免费</li>
+                      <li>• Deposits usually arrive within 1-3 business days</li>
+                      <li>• Please use a bank account with real-name authentication</li>
+                      <li>• Minimum deposit amount per transaction: 100 CNY</li>
+                      <li>• Deposit fee: Free</li>
                     </>
                   ) : (
                     <>
-                      <li>• 出金通常在1-3个工作日内到账</li>
-                      <li>• 请确保银行账号信息正确</li>
-                      <li>• 单笔最低出金金额: 100 CNY</li>
-                      <li>• 出金手续费: 0.1%（最低1元）</li>
+                      <li>• Withdrawals usually arrive within 1-3 business days</li>
+                      <li>• Please ensure the bank account information is correct</li>
+                      <li>• Minimum withdrawal amount per transaction: 100 CNY</li>
+                      <li>• Withdrawal fee: 0.1% (minimum 1 CNY)</li>
                     </>
                   )}
                 </ul>
@@ -358,17 +358,17 @@ export default function FiatPage() {
             </div>
           </div>
 
-          {/* 订单列表 */}
+          {/* Order list */}
           <div className="bg-white shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
-                我的订单
+                My Orders
               </h2>
             </div>
 
             {orders.length === 0 ? (
               <div className="px-6 py-12 text-center text-gray-500">
-                暂无订单记录
+                No order records
               </div>
             ) : (
               <div className="divide-y divide-gray-200">
@@ -378,17 +378,17 @@ export default function FiatPage() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <span className="text-lg font-semibold text-gray-900">
-                            {order.type === 'DEPOSIT' ? '入金' : '出金'} {order.amount} {order.currency}
+                            {order.type === 'DEPOSIT' ? 'Deposit' : 'Withdrawal'} {order.amount} {order.currency}
                           </span>
                           <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-800'}`}>
                             {STATUS_LABELS[order.status] || order.status}
                           </span>
                         </div>
                         <p className="text-sm text-gray-600">
-                          银行账号: {order.bankAccount}
+                          Bank Account: {order.bankAccount}
                         </p>
                         <p className="text-xs text-gray-400">
-                          订单号: {order.id}
+                          Order ID: {order.id}
                         </p>
                         <p className="text-xs text-gray-400">
                           {new Date(order.createdAt).toLocaleString('zh-CN')}

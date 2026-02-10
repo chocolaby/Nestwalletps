@@ -17,15 +17,15 @@ interface SiemEvent {
 }
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
-  LOGIN: '登录',
-  LOGOUT: '登出',
-  TRANSACTION: '交易',
-  WALLET_CREATED: '创建钱包',
-  KYC_SUBMITTED: 'KYC提交',
-  KYC_APPROVED: 'KYC通过',
-  KYC_REJECTED: 'KYC拒绝',
-  ADMIN_ACTION: '管理操作',
-  SECURITY_ALERT: '安全告警'
+  LOGIN: 'Login',
+  LOGOUT: 'Logout',
+  TRANSACTION: 'Transaction',
+  WALLET_CREATED: 'Wallet Created',
+  KYC_SUBMITTED: 'KYC Submitted',
+  KYC_APPROVED: 'KYC Approved',
+  KYC_REJECTED: 'KYC Rejected',
+  ADMIN_ACTION: 'Admin Action',
+  SECURITY_ALERT: 'Security Alert'
 }
 
 const RISK_COLORS: Record<string, string> = {
@@ -79,7 +79,7 @@ export default function SiemDashboardPage() {
         setStats(data.stats)
       }
     } catch (error) {
-      console.error('获取SIEM数据失败:', error)
+      console.error('Failed to fetch SIEM data:', error)
     } finally {
       setLoading(false)
     }
@@ -88,7 +88,7 @@ export default function SiemDashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">加载中...</div>
+        <div className="text-lg">Loading...</div>
       </div>
     )
   }
@@ -99,9 +99,9 @@ export default function SiemDashboardPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">SIEM 安全监控</h1>
+            <h1 className="text-3xl font-bold text-gray-900">SIEM Security Monitoring</h1>
             <Button variant="outline" onClick={() => router.push('/admin')}>
-              返回管理后台
+              Back to Admin
             </Button>
           </div>
         </div>
@@ -109,41 +109,41 @@ export default function SiemDashboardPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* 统计卡片 */}
+          {/* Statistics cards */}
           {stats && (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-4 mb-8">
               <div className="bg-white overflow-hidden shadow rounded-lg p-5">
-                <div className="text-sm font-medium text-gray-500">总事件数</div>
+                <div className="text-sm font-medium text-gray-500">Total Events</div>
                 <div className="mt-1 text-3xl font-semibold text-gray-900">{stats.totalEvents}</div>
               </div>
               <div className="bg-green-50 overflow-hidden shadow rounded-lg p-5">
-                <div className="text-sm font-medium text-green-700">低风险</div>
+                <div className="text-sm font-medium text-green-700">Low Risk</div>
                 <div className="mt-1 text-3xl font-semibold text-green-900">{stats.lowRisk}</div>
               </div>
               <div className="bg-yellow-50 overflow-hidden shadow rounded-lg p-5">
-                <div className="text-sm font-medium text-yellow-700">中风险</div>
+                <div className="text-sm font-medium text-yellow-700">Medium Risk</div>
                 <div className="mt-1 text-3xl font-semibold text-yellow-900">{stats.mediumRisk}</div>
               </div>
               <div className="bg-red-50 overflow-hidden shadow rounded-lg p-5">
-                <div className="text-sm font-medium text-red-700">高风险</div>
+                <div className="text-sm font-medium text-red-700">High Risk</div>
                 <div className="mt-1 text-3xl font-semibold text-red-900">{stats.highRisk}</div>
               </div>
             </div>
           )}
 
-          {/* 过滤器 */}
+          {/* Filters */}
           <div className="bg-white shadow rounded-lg p-4 mb-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  事件类型
+                  Event Type
                 </label>
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">全部</option>
+                  <option value="all">All</option>
                   {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>{label}</option>
                   ))}
@@ -151,34 +151,34 @@ export default function SiemDashboardPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  风险等级
+                  Risk Level
                 </label>
                 <select
                   value={filterRisk}
                   onChange={(e) => setFilterRisk(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">全部</option>
-                  <option value="LOW">低风险</option>
-                  <option value="MEDIUM">中风险</option>
-                  <option value="HIGH">高风险</option>
-                  <option value="CRITICAL">严重</option>
+                  <option value="all">All</option>
+                  <option value="LOW">Low Risk</option>
+                  <option value="MEDIUM">Medium Risk</option>
+                  <option value="HIGH">High Risk</option>
+                  <option value="CRITICAL">Critical</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* 事件列表 */}
+          {/* Event list */}
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
               <h3 className="text-lg font-medium text-gray-900">
-                安全事件日志
+                Security Event Log
               </h3>
             </div>
             <ul className="divide-y divide-gray-200">
               {events.length === 0 ? (
                 <li className="px-4 py-12 text-center text-gray-500">
-                  暂无事件记录
+                  No event records
                 </li>
               ) : (
                 events.map((event) => (
@@ -214,10 +214,10 @@ export default function SiemDashboardPage() {
             </ul>
           </div>
 
-          {/* 刷新按钮 */}
+          {/* Refresh button */}
           <div className="mt-6">
             <Button onClick={() => fetchData()}>
-              刷新数据
+              Refresh Data
             </Button>
           </div>
         </div>

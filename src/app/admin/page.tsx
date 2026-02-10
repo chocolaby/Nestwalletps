@@ -75,7 +75,7 @@ export default function AdminPage() {
         setPendingKyc(data.documents || [])
       }
     } catch (error) {
-      console.error('获取管理数据失败:', error)
+      console.error('Failed to fetch admin data:', error)
     } finally {
       setLoading(false)
     }
@@ -88,15 +88,15 @@ export default function AdminPage() {
       })
 
       if (response.ok) {
-        fetchData() // 刷新数据
+        fetchData() // Refresh data
       }
     } catch (error) {
-      console.error('审批失败:', error)
+      console.error('Approval failed:', error)
     }
   }
 
   const handleRejectKyc = async (docId: string) => {
-    const reason = prompt('请输入拒绝原因:')
+    const reason = prompt('Please enter rejection reason:')
     if (!reason) return
 
     try {
@@ -110,14 +110,14 @@ export default function AdminPage() {
         fetchData()
       }
     } catch (error) {
-      console.error('拒绝失败:', error)
+      console.error('Rejection failed:', error)
     }
   }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">加载中...</div>
+        <div className="text-lg">Loading...</div>
       </div>
     )
   }
@@ -128,9 +128,9 @@ export default function AdminPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">管理员控制台</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Admin Console</h1>
             <Button variant="outline" onClick={() => router.push('/dashboard')}>
-              返回Dashboard
+              Return to Dashboard
             </Button>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function AdminPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* 统计卡片 */}
+          {/* Statistics Cards */}
           {stats && (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
               <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -151,7 +151,7 @@ export default function AdminPage() {
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">总用户数</dt>
+                        <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
                         <dd className="text-lg font-medium text-gray-900">{stats.totalUsers}</dd>
                       </dl>
                     </div>
@@ -169,7 +169,7 @@ export default function AdminPage() {
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">总钱包数</dt>
+                        <dt className="text-sm font-medium text-gray-500 truncate">Total Wallets</dt>
                         <dd className="text-lg font-medium text-gray-900">{stats.totalWallets}</dd>
                       </dl>
                     </div>
@@ -187,7 +187,7 @@ export default function AdminPage() {
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">总交易数</dt>
+                        <dt className="text-sm font-medium text-gray-500 truncate">Total Transactions</dt>
                         <dd className="text-lg font-medium text-gray-900">{stats.totalTransactions}</dd>
                       </dl>
                     </div>
@@ -205,7 +205,7 @@ export default function AdminPage() {
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">待审KYC</dt>
+                        <dt className="text-sm font-medium text-gray-500 truncate">Pending KYC</dt>
                         <dd className="text-lg font-medium text-gray-900">{stats.pendingKyc}</dd>
                       </dl>
                     </div>
@@ -215,7 +215,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* 标签页 */}
+          {/* Tabs */}
           <div className="border-b border-gray-200 mb-6">
             <nav className="-mb-px flex space-x-8">
               <button
@@ -226,7 +226,7 @@ export default function AdminPage() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
               >
-                概览
+                Overview
               </button>
               <button
                 onClick={() => setActiveTab('users')}
@@ -236,7 +236,7 @@ export default function AdminPage() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
               >
-                用户管理
+                User Management
               </button>
               <button
                 onClick={() => setActiveTab('kyc')}
@@ -246,12 +246,12 @@ export default function AdminPage() {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
               >
-                KYC审批
+                KYC Approval
               </button>
             </nav>
           </div>
 
-          {/* 用户列表 */}
+          {/* User List */}
           {activeTab === 'users' && (
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
               <ul className="divide-y divide-gray-200">
@@ -267,13 +267,13 @@ export default function AdminPage() {
                         </div>
                         <div className="flex items-center space-x-3">
                           <span className="text-xs text-gray-500">
-                            {new Date(u.createdAt).toLocaleDateString('zh-CN')}
+                            {new Date(u.createdAt).toLocaleDateString('en-US')}
                           </span>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={async () => {
-                              const reason = prompt('请输入冻结原因:')
+                              const reason = prompt('Please enter freeze reason:')
                               if (!reason) return
                               try {
                                 await fetch(`/api/admin/user/${u.id}/freeze`, {
@@ -281,14 +281,14 @@ export default function AdminPage() {
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ reason })
                                 })
-                                alert('账户已冻结')
+                                alert('Account has been frozen')
                                 fetchData()
                               } catch (error) {
-                                alert('操作失败')
+                                alert('Operation failed')
                               }
                             }}
                           >
-                            🔒 冻结
+                            🔒 Freeze
                           </Button>
                         </div>
                       </div>
@@ -299,13 +299,13 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* KYC审批列表 */}
+          {/* KYC Approval List */}
           {activeTab === 'kyc' && (
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
               <ul className="divide-y divide-gray-200">
                 {pendingKyc.length === 0 ? (
                   <li className="px-4 py-12 text-center text-gray-500">
-                    没有待审批的KYC文档
+                    No pending KYC documents
                   </li>
                 ) : (
                   pendingKyc.map((doc) => (
@@ -321,14 +321,14 @@ export default function AdminPage() {
                               size="sm"
                               onClick={() => handleApproveKyc(doc.id)}
                             >
-                              通过
+                              Approve
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleRejectKyc(doc.id)}
                             >
-                              拒绝
+                              Reject
                             </Button>
                           </div>
                         </div>
@@ -340,24 +340,24 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* 概览页 */}
+          {/* Overview Page */}
           {activeTab === 'overview' && (
             <div className="bg-white shadow sm:rounded-lg p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                快速操作
+                Quick Actions
               </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Button onClick={() => setActiveTab('users')}>
-                  👥 用户管理
+                  👥 User Management
                 </Button>
                 <Button onClick={() => setActiveTab('kyc')}>
-                  🆔 KYC审批
+                  🆔 KYC Approval
                 </Button>
                 <Button variant="outline" onClick={() => router.push('/admin/siem')}>
-                  🔒 SIEM日志
+                  🔒 SIEM Logs
                 </Button>
                 <Button variant="outline" onClick={() => router.push('/admin/contracts')}>
-                  🏗️ 合约管理
+                  🏗️ Contract Management
                 </Button>
               </div>
             </div>

@@ -10,7 +10,7 @@ export default function Home() {
           🏦 NestWallet
         </h1>
         <p className="text-center text-gray-600 mb-8">
-          企业级区块链钱包系统
+          Enterprise Blockchain Wallet System
         </p>
         
         <div className="space-y-4">
@@ -18,20 +18,20 @@ export default function Home() {
             href="/auth/login"
             className="block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition"
           >
-            登录
+            Login
           </Link>
           
           <Link 
             href="/auth/register"
             className="block w-full bg-gray-200 text-gray-800 text-center py-3 rounded-lg hover:bg-gray-300 transition"
           >
-            注册新账户
+            Register New Account
           </Link>
         </div>
 
         <div className="mt-8 p-4 bg-green-50 rounded-lg">
           <p className="text-sm text-green-800 text-center">
-            ✅ Next.js + Tailwind CSS 正常运行
+            ✅ Next.js + Tailwind CSS Running Normally
           </p>
         </div>
       </div>

@@ -23,13 +23,13 @@ export default function RegisterPage() {
     setError('')
 
     if (password !== confirmPassword) {
-      setError('两次密码输入不一致')
+      setError('Passwords do not match')
       setLoading(false)
       return
     }
 
     if (password.length < 8) {
-      setError('密码至少需要8个字符')
+      setError('Password must be at least 8 characters')
       setLoading(false)
       return
     }
@@ -49,12 +49,12 @@ export default function RegisterPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            注册 NestWallet 账户
+            Register NestWallet Account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            已有账户？{' '}
+            Already have an account?{' '}
             <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
-              立即登录
+              Login Now
             </Link>
           </p>
         </div>
@@ -62,31 +62,31 @@ export default function RegisterPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <Input
-              label="邮箱地址"
+              label="Email Address"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="请输入邮箱"
+              placeholder="Enter email"
             />
             
             <Input
-              label="密码"
+              label="Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="请输入密码"
-              helperText="至少8个字符"
+              placeholder="Enter password"
+              helperText="At least 8 characters"
             />
             
             <Input
-              label="确认密码"
+              label="Confirm Password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              placeholder="请再次输入密码"
+              placeholder="Enter password again"
             />
           </div>
 
@@ -101,7 +101,7 @@ export default function RegisterPage() {
             className="w-full"
             loading={loading}
           >
-            注册账户
+            Register Account
           </Button>
         </form>
       </div>

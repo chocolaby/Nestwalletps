@@ -53,7 +53,7 @@ export default function MintPage() {
         setRecords(data.records || [])
       }
     } catch (error) {
-      console.error('获取Mint历史失败:', error)
+      console.error('Failed to fetch Mint history:', error)
     }
   }
 
@@ -76,28 +76,28 @@ export default function MintPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Mint失败')
+        throw new Error(error.error || 'Mint failed')
       }
 
       const data = await response.json()
-      setSuccess(`成功Mint ${amount} ${tokenSymbol} 到 ${toAddress}`)
+      setSuccess(`Successfully minted ${amount} ${tokenSymbol} to ${toAddress}`)
       
-      // 清空表单
+      // Clear form
       setToAddress('')
       setAmount('')
       setReason('')
       setShowConfirm(false)
       
-      // 刷新记录
+      // Refresh records
       fetchRecords()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Mint失败')
+      setError(err instanceof Error ? err.message : 'Mint failed')
     } finally {
       setLoading(false)
     }
   }
 
-  // 地址验证
+  // Address validation
   const isValidAddress = (address: string) => {
     return /^0x[a-fA-F0-9]{40}$/.test(address)
   }
@@ -108,9 +108,9 @@ export default function MintPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">代币铸造</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Token Minting</h1>
             <Button variant="outline" onClick={() => router.push('/admin')}>
-              返回管理后台
+              Back to Admin
             </Button>
           </div>
         </div>
@@ -118,16 +118,16 @@ export default function MintPage() {
 
       <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* Mint表单 */}
+          {/* Mint form */}
           <div className="bg-white shadow rounded-lg p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              铸造新代币
+              Mint New Tokens
             </h2>
 
             <div className="space-y-4">
-              {/* 接收地址 */}
+              {/* Receiving address */}
               <Input
-                label="接收地址"
+                label="Receiving Address"
                 value={toAddress}
                 onChange={(e) => setToAddress(e.target.value)}
                 placeholder="0x..."
@@ -136,14 +136,14 @@ export default function MintPage() {
               />
               {toAddress && !isValidAddress(toAddress) && (
                 <p className="text-sm text-red-600">
-                  请输入有效的以太坊地址
+                  Please enter a valid Ethereum address
                 </p>
               )}
 
-              {/* 金额和代币 */}
+              {/* Amount and token */}
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="铸造数量"
+                  label="Mint Amount"
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
@@ -153,7 +153,7 @@ export default function MintPage() {
                 />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    代币
+                    Token
                   </label>
                   <select
                     value={tokenSymbol}
@@ -162,51 +162,51 @@ export default function MintPage() {
                     disabled={loading}
                   >
                     <option value="NEST">NEST</option>
-                    <option value="ETH">ETH (测试)</option>
+                    <option value="ETH">ETH (Test)</option>
                   </select>
                 </div>
               </div>
 
-              {/* 原因说明 */}
+              {/* Reason description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  铸造原因
+                  Mint Reason
                 </label>
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   rows={3}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="请说明铸造原因..."
+                  placeholder="Please explain the reason for minting..."
                   disabled={loading}
                   required
                 />
               </div>
 
-              {/* 成功提示 */}
+              {/* Success message */}
               {success && (
                 <div className="rounded-md bg-green-50 p-4">
                   <div className="text-sm text-green-700">{success}</div>
                 </div>
               )}
 
-              {/* 错误提示 */}
+              {/* Error message */}
               {error && (
                 <div className="rounded-md bg-red-50 p-4">
                   <div className="text-sm text-red-700">{error}</div>
                 </div>
               )}
 
-              {/* 确认弹窗 */}
+              {/* Confirmation dialog */}
               {showConfirm && (
                 <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                   <h3 className="text-sm font-medium text-yellow-900 mb-2">
-                    ⚠️ 请确认铸造信息
+                    ⚠️ Please Confirm Minting Information
                   </h3>
                   <div className="space-y-1 text-sm text-yellow-800 mb-4">
-                    <p>地址: {toAddress}</p>
-                    <p>数量: {amount} {tokenSymbol}</p>
-                    <p>原因: {reason}</p>
+                    <p>Address: {toAddress}</p>
+                    <p>Amount: {amount} {tokenSymbol}</p>
+                    <p>Reason: {reason}</p>
                   </div>
                   <div className="flex space-x-2">
                     <Button
@@ -214,20 +214,20 @@ export default function MintPage() {
                       loading={loading}
                       className="flex-1"
                     >
-                      确认铸造
+                      Confirm Mint
                     </Button>
                     <Button
                       variant="outline"
                       onClick={() => setShowConfirm(false)}
                       disabled={loading}
                     >
-                      取消
+                      Cancel
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* 按钮 */}
+              {/* Button */}
               {!showConfirm && (
                 <Button
                   onClick={() => setShowConfirm(true)}
@@ -241,36 +241,36 @@ export default function MintPage() {
                   }
                   className="w-full"
                 >
-                  铸造代币
+                  Mint Tokens
                 </Button>
               )}
             </div>
 
-            {/* 说明 */}
+            {/* Instructions */}
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <h3 className="text-sm font-medium text-blue-900 mb-2">
-                🔒 安全提示
+                🔒 Security Notice
               </h3>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• 铸造操作不可撤销，请谨慎操作</li>
-                <li>• 所有铸造记录将被永久保存</li>
-                <li>• 请确保接收地址正确</li>
-                <li>• 铸造原因将记录到审计日志</li>
+                <li>• Minting operations are irreversible, please proceed with caution</li>
+                <li>• All minting records will be permanently saved</li>
+                <li>• Please ensure the receiving address is correct</li>
+                <li>• Minting reason will be recorded in the audit log</li>
               </ul>
             </div>
           </div>
 
-          {/* Mint历史 */}
+          {/* Mint history */}
           <div className="bg-white shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">
-                铸造历史
+                Minting History
               </h2>
             </div>
 
             {records.length === 0 ? (
               <div className="px-6 py-12 text-center text-gray-500">
-                暂无铸造记录
+                No minting records
               </div>
             ) : (
               <div className="divide-y divide-gray-200">
@@ -287,7 +287,7 @@ export default function MintPage() {
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mb-1">
-                          原因: {record.reason}
+                          Reason: {record.reason}
                         </p>
                         {record.txHash && (
                           <p className="text-xs text-gray-500 font-mono">

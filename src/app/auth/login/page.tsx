@@ -18,29 +18,29 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('🚀 表单提交了！', { email, password: '***' })
+    console.log('🚀 Form submitted!', { email, password: '***' })
     setLoading(true)
     setError('')
 
     try {
-      console.log('📡 正在调用登录API...')
+      console.log('📡 Calling login API...')
       await login(email, password)
-      console.log('✅ 登录API成功！')
+      console.log('✅ Login API successful!')
       
-      // 检查cookie是否已设置
-      console.log('🍪 当前cookies:', document.cookie)
+      // Check if cookie is set
+      console.log('🍪 Current cookies:', document.cookie)
       
-      // 增加延迟，确保cookie完全设置
-      console.log('⏳ 等待500ms让cookie生效...')
+      // Add delay to ensure cookie is fully set
+      console.log('⏳ Waiting 500ms for cookie to take effect...')
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      console.log('🍪 延迟后cookies:', document.cookie)
-      console.log('🔄 开始跳转到dashboard...')
+      console.log('🍪 Cookies after delay:', document.cookie)
+      console.log('🔄 Starting redirect to dashboard...')
       
-      // 使用router.push跳转，这样AuthContext的user状态会被保留
+      // Use router.push to navigate, this way AuthContext's user state will be preserved
       router.push('/dashboard')
     } catch (err) {
-      console.error('❌ 登录出错了:', err)
+      console.error('❌ Login error:', err)
       setError(err instanceof Error ? err.message : 'Login failed')
       setLoading(false)
     }
@@ -51,12 +51,12 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            登录 NestWallet
+            Login to NestWallet
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            还没有账户？{' '}
+            Don't have an account?{' '}
             <Link href="/auth/register" className="font-medium text-blue-600 hover:text-blue-500">
-              立即注册
+              Register Now
             </Link>
           </p>
         </div>
@@ -64,21 +64,21 @@ export default function LoginPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <Input
-              label="邮箱地址"
+              label="Email Address"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="请输入邮箱"
+              placeholder="Enter email"
             />
             
             <Input
-              label="密码"
+              label="Password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="请输入密码"
+              placeholder="Enter password"
             />
           </div>
 
@@ -93,7 +93,7 @@ export default function LoginPage() {
             className="w-full"
             loading={loading}
           >
-            登录
+            Login
           </Button>
         </form>
       </div>
