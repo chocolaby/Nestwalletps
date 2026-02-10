@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 用户表
+// User table
 model User {
   id          String   @id @default(uuid())
   email       String   @unique
@@ -26,7 +26,7 @@ model User {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   
-  // 关联
+  // Relations
   wallets     Wallet[]
   kycDocuments KycDocument[]
   transactions Transaction[]
@@ -37,16 +37,16 @@ model User {
   @@map("users")
 }
 
-// 钱包表
+// Wallet table
 model Wallet {
   id        String     @id @default(uuid())
   userId    String     @map("user_id")
   address   String     @unique
   type      String
-  privateKeyEncrypted String? @map("private_key_encrypted") // 仅托管钱包
+  privateKeyEncrypted String? @map("private_key_encrypted") // Only for custodial wallets
   createdAt DateTime   @default(now()) @map("created_at")
   
-  // 关联
+  // Relations
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
   balances  TokenBalance[]
   fromTransactions Transaction[] @relation("FromWallet")
@@ -55,31 +55,31 @@ model Wallet {
   @@map("wallets")
 }
 
-// 代币余额表
+// Token balance table
 model TokenBalance {
   id            String  @id @default(uuid())
   walletId      String  @map("wallet_id")
   tokenAddress  String  @map("token_address")
   tokenSymbol   String  @map("token_symbol")
   tokenName     String  @map("token_name")
-  balance       String  // 使用字符串存储大数
+  balance       String  // Using string to store large numbers
   decimals      Int     @default(18)
   
-  // 关联
+  // Relations
   wallet        Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
   
   @@unique([walletId, tokenAddress])
   @@map("token_balances")
 }
 
-// 交易表
+// Transaction table
 model Transaction {
   id            String            @id @default(uuid())
   fromWalletId  String?           @map("from_wallet_id")
   toWalletId    String?           @map("to_wallet_id")
   fromAddress   String            @map("from_address")
   toAddress     String            @map("to_address")
-  amount        String            // 使用字符串存储大数
+  amount        String            // Using string to store large numbers
   tokenAddress  String?           @map("token_address")
   tokenSymbol   String?           @map("token_symbol")
   txHash        String?           @unique @map("tx_hash")
@@ -91,7 +91,7 @@ model Transaction {
   createdAt     DateTime          @default(now()) @map("created_at")
   updatedAt     DateTime          @updatedAt @map("updated_at")
   
-  // 关联
+  // Relations
   user          User    @relation(fields: [userId], references: [id])
   fromWallet    Wallet? @relation("FromWallet", fields: [fromWalletId], references: [id])
   toWallet      Wallet? @relation("ToWallet", fields: [toWalletId], references: [id])
@@ -100,7 +100,7 @@ model Transaction {
   @@map("transactions")
 }
 
-// 交易审批表
+// Transaction approval table
 model TransactionApproval {
   id            String    @id @default(uuid())
   transactionId String    @map("transaction_id")
@@ -110,14 +110,14 @@ model TransactionApproval {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
   
-  // 关联
+  // Relations
   transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   
   @@unique([transactionId, approverId])
   @@map("transaction_approvals")
 }
 
-// KYC文档表
+// KYC document table
 model KycDocument {
   id          String      @id @default(uuid())
   userId      String      @map("user_id")
@@ -127,26 +127,26 @@ model KycDocument {
   fileSize    Int         @map("file_size")
   mimeType    String      @map("mime_type")
   status      String   @default("PENDING")
-  ocrData     String?     @map("ocr_data") // JSON格式的OCR识别结果
+  ocrData     String?     @map("ocr_data") // OCR recognition results in JSON format
   verifiedAt  DateTime?   @map("verified_at")
   createdAt   DateTime    @default(now()) @map("created_at")
 
-  // 关联
+  // Relations
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("kyc_documents")
 }
 
-// 活体检测记录表
+// Liveness check table
 model LivenessCheck {
   id              String    @id @default(uuid())
   userId          String    @map("user_id")
   status          String    @default("PENDING") // PENDING, IN_PROGRESS, PASSED, FAILED
   challengeType   String    @map("challenge_type") // BLINK, NOD, SHAKE, SMILE
-  challengeResult String?   @map("challenge_result") // JSON格式的检测结果
-  faceImagePath   String?   @map("face_image_path") // 人脸截图路径
-  confidence      Float?    // 置信度分数 0-1
-  attempts        Int       @default(0) // 尝试次数
+  challengeResult String?   @map("challenge_result") // Detection results in JSON format
+  faceImagePath   String?   @map("face_image_path") // Face screenshot path
+  confidence      Float?    // Confidence score 0-1
+  attempts        Int       @default(0) // Number of attempts
   maxAttempts     Int       @default(3) @map("max_attempts")
   completedAt     DateTime? @map("completed_at")
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -155,29 +155,29 @@ model LivenessCheck {
   @@map("liveness_checks")
 }
 
-// SIEM事件表
+// SIEM event table
 model SiemEvent {
   id          String      @id @default(uuid())
   userId      String?     @map("user_id")
   eventType   String @map("event_type")
-  details     String      // JSON格式的事件详情
+  details     String      // Event details in JSON format
   riskLevel   String   @map("risk_level") @default("LOW")
   ipAddress   String?     @map("ip_address")
   userAgent   String?     @map("user_agent")
   createdAt   DateTime    @default(now()) @map("created_at")
   
-  // 关联
+  // Relations
   user        User? @relation(fields: [userId], references: [id])
   
   @@map("siem_events")
 }
 
-// 智能合约表
+// Smart contract table
 model SmartContract {
   id          String   @id @default(uuid())
   name        String
   address     String   @unique
-  abi         String   // JSON格式的ABI
+  abi         String   // ABI in JSON format
   bytecode    String?
   deployedBy  String   @map("deployed_by")
   network     String   @default("localhost")
@@ -188,31 +188,31 @@ model SmartContract {
   @@map("smart_contracts")
 }
 
-// 法币订单表
+// Fiat order table
 model FiatOrder {
   id            String   @id @default(uuid())
   userId        String   @map("user_id")
   type          String   // DEPOSIT, WITHDRAW
-  amount        String   // 金额
-  currency      String   // CNY, USD等
+  amount        String   // Amount
+  currency      String   // CNY, USD, etc.
   status        String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED, CANCELLED
-  paymentMethod String?  @map("payment_method") // BANK_CARD, ALIPAY, WECHAT等
+  paymentMethod String?  @map("payment_method") // BANK_CARD, ALIPAY, WECHAT, etc.
   bankAccount   String?  @map("bank_account")
   bankName      String?  @map("bank_name")
   accountHolder String?  @map("account_holder")
-  note          String?  // 备注
-  processedBy   String?  @map("processed_by") // 处理人员ID
+  note          String?  // Remarks
+  processedBy   String?  @map("processed_by") // Processor ID
   processedAt   DateTime? @map("processed_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
   
-  // 关联
+  // Relations
   user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("fiat_orders")
 }
 
-// 通知表
+// Notification table
 model Notification {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
@@ -222,14 +222,14 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
   
-  // 关联
+  // Relations
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("notifications")
 }
 
-// SQLite 不支持枚举，使用字符串代替
-// 约定的值:
+// SQLite does not support enums, using strings instead
+// Conventional values:
 // UserRole: USER, ADMIN, COMPLIANCE
 // WalletType: CUSTODIAL, NON_CUSTODIAL
 // KycStatus: PENDING, APPROVED, REJECTED, EXPIRED

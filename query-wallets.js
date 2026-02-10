@@ -9,7 +9,7 @@ async function main() {
       createdAt: true
     }
   })
-  console.log('钱包列表:')
+  console.log('Wallet list:')
   wallets.forEach((w, i) => {
     console.log(`${i + 1}. ${w.address} (${w.type})`)
   })

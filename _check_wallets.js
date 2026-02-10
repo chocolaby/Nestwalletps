@@ -11,9 +11,9 @@ async function main() {
   })
 
   wallets.forEach(w => {
-    console.log(`地址: ${w.address}`)
-    console.log(`类型: ${w.type}`)
-    console.log(`有私钥: ${w.privateKeyEncrypted ? '是' : '否'}`)
+    console.log(`Address: ${w.address}`)
+    console.log(`Type: ${w.type}`)
+    console.log(`Has private key: ${w.privateKeyEncrypted ? 'Yes' : 'No'}`)
     console.log('---')
   })
 }

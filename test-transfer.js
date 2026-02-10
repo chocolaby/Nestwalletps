@@ -1,6 +1,6 @@
 const { ethers } = require('ethers')
 
-// 配置
+// Configuration
 const RPC_URL = 'https://ethereum-sepolia-rpc.publicnode.com'
 const PRIVATE_KEY = '5ac3da7626899d3bc9595ed73f5ae8ba0fbd1082f3be9d6f3aad6e284e885567'
 const TOKEN_ADDRESS = '0x9fB3658e8810b35E5eb573629F4FA25de772544C'
@@ -17,51 +17,51 @@ const TOKEN_ABI = [
 
 async function main() {
   console.log('='.repeat(50))
-  console.log('NestToken 转账测试 - Sepolia')
+  console.log('NestToken Transfer Test - Sepolia')
   console.log('='.repeat(50))
 
-  // 连接
+  // Connect
   const provider = new ethers.JsonRpcProvider(RPC_URL)
   const wallet = new ethers.Wallet(PRIVATE_KEY, provider)
   const contract = new ethers.Contract(TOKEN_ADDRESS, TOKEN_ABI, wallet)
 
-  console.log('\n📍 账户信息:')
-  console.log(`   地址: ${wallet.address}`)
+  console.log('\n📍 Account info:')
+  console.log(`   Address: ${wallet.address}`)
 
-  // 查询余额
+  // Query balance
   const ethBalance = await provider.getBalance(wallet.address)
-  console.log(`   ETH 余额: ${ethers.formatEther(ethBalance)} ETH`)
+  console.log(`   ETH balance: ${ethers.formatEther(ethBalance)} ETH`)
 
   const tokenBalance = await contract.balanceOf(wallet.address)
   const decimals = await contract.decimals()
-  console.log(`   NEST 余额: ${ethers.formatUnits(tokenBalance, decimals)} NEST`)
+  console.log(`   NEST balance: ${ethers.formatUnits(tokenBalance, decimals)} NEST`)
 
-  // 创建测试接收地址
+  // Create test receiver address
   const testReceiver = ethers.Wallet.createRandom().address
-  console.log(`\n📤 转账测试:`)
-  console.log(`   接收地址: ${testReceiver}`)
-  console.log(`   转账金额: 100 NEST`)
+  console.log(`\n📤 Transfer test:`)
+  console.log(`   Receiver address: ${testReceiver}`)
+  console.log(`   Transfer amount: 100 NEST`)
 
-  // 执行转账
-  console.log('\n🚀 发送交易...')
+  // Execute transfer
+  console.log('\n🚀 Sending transaction...')
   const amount = ethers.parseUnits('100', decimals)
   const tx = await contract.transfer(testReceiver, amount)
-  console.log(`   交易哈希: ${tx.hash}`)
-  console.log('   等待确认...')
+  console.log(`   Transaction hash: ${tx.hash}`)
+  console.log('   Waiting for confirmation...')
 
   const receipt = await tx.wait()
-  console.log(`\n✅ 转账成功!`)
-  console.log(`   区块号: ${receipt.blockNumber}`)
-  console.log(`   Gas 使用: ${receipt.gasUsed.toString()}`)
+  console.log(`\n✅ Transfer successful!`)
+  console.log(`   Block number: ${receipt.blockNumber}`)
+  console.log(`   Gas used: ${receipt.gasUsed.toString()}`)
 
-  // 查询转账后余额
+  // Query post-transfer balance
   const newBalance = await contract.balanceOf(wallet.address)
   const receiverBalance = await contract.balanceOf(testReceiver)
-  console.log(`\n📊 转账后余额:`)
-  console.log(`   发送方: ${ethers.formatUnits(newBalance, decimals)} NEST`)
-  console.log(`   接收方: ${ethers.formatUnits(receiverBalance, decimals)} NEST`)
+  console.log(`\n📊 Post-transfer balance:`)
+  console.log(`   Sender: ${ethers.formatUnits(newBalance, decimals)} NEST`)
+  console.log(`   Receiver: ${ethers.formatUnits(receiverBalance, decimals)} NEST`)
 
-  console.log(`\n🔗 查看交易: https://sepolia.etherscan.io/tx/${tx.hash}`)
+  console.log(`\n🔗 View transaction: https://sepolia.etherscan.io/tx/${tx.hash}`)
 }
 
 main().catch(console.error)
