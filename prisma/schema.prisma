@@ -200,6 +200,7 @@ model FiatOrder {
   bankAccount   String?  @map("bank_account")
   bankName      String?  @map("bank_name")
   accountHolder String?  @map("account_holder")
+  txReference   String?  @map("tx_reference") // 银行交易参考号
   note          String?  // 备注
   processedBy   String?  @map("processed_by") // 处理人员ID
   processedAt   DateTime? @map("processed_at")
