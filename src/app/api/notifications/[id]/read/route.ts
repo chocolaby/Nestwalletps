@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import { NotificationService } from '@/lib/notifications'
 
-// 标记通知为已读
+// Mark notification as read
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -15,20 +15,20 @@ export async function POST(
 
     const notificationId = params.id
 
-    // 标记为已读
-    const success = await NotificationService.markAsRead(notificationId, user.id)
+    // Mark as read
+    const successful = await NotificationService.markAsRead(notificationId, user.id)
 
-    if (!success) {
-      return NextResponse.json({ error: '通知不存在或操作失败' }, { status: 404 })
+    if (!successful) {
+      return NextResponse.json({ error: 'Notification does not exist or operation failed' }, { status: 404 })
     }
 
     return NextResponse.json({
-      success: true,
-      message: '通知已标记为已读'
+      successful: true,
+      message: 'Notification marked as read'
     })
 
   } catch (error) {
-    console.error('标记通知已读失败:', error)
-    return NextResponse.json({ error: '操作失败' }, { status: 500 })
+    console.error('Failed to mark notification as read:', error)
+    return NextResponse.json({ error: 'Operation failed' }, { status: 500 })
   }
 }

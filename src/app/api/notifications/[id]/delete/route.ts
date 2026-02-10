@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import { NotificationService } from '@/lib/notifications'
 
-// 删除通知
+// Delete notification
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -15,20 +15,20 @@ export async function DELETE(
 
     const notificationId = params.id
 
-    // 删除通知
-    const success = await NotificationService.deleteNotification(notificationId, user.id)
+    // Delete notification
+    const successful = await NotificationService.deleteNotification(notificationId, user.id)
 
-    if (!success) {
-      return NextResponse.json({ error: '通知不存在或操作失败' }, { status: 404 })
+    if (!successful) {
+      return NextResponse.json({ error: 'Notification does not exist or operation failed' }, { status: 404 })
     }
 
     return NextResponse.json({
-      success: true,
-      message: '通知已删除'
+      successful: true,
+      message: 'Notification deleted'
     })
 
   } catch (error) {
-    console.error('删除通知失败:', error)
-    return NextResponse.json({ error: '删除失败' }, { status: 500 })
+    console.error('Failed to delete notification:', error)
+    return NextResponse.json({ error: 'Deletion failed' }, { status: 500 })
   }
 }

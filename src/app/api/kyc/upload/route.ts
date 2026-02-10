@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未授权' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
@@ -23,54 +23,54 @@ export async function POST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { error: '请选择文件' },
+        { error: 'Please select a file' },
         { status: 400 }
       )
     }
 
     if (!documentType) {
       return NextResponse.json(
-        { error: '请选择证件类型' },
+        { error: 'Please select document type' },
         { status: 400 }
       )
     }
 
-    // 验证文件类型
+    // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf']
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: '不支持的文件类型' },
+        { error: 'Unsupported file type' },
         { status: 400 }
       )
     }
 
-    // 验证文件大小 (5MB)
+    // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
-        { error: '文件大小不能超过5MB' },
+        { error: 'File size cannot exceed 5MB' },
         { status: 400 }
       )
     }
 
-    // 生成唯一文件名
+    // Generate unique filename
     const fileExtension = file.name.split('.').pop()
     const fileName = `${uuidv4()}.${fileExtension}`
     const uploadDir = join(process.cwd(), 'uploads', 'kyc')
     const filePath = join(uploadDir, fileName)
 
-    // 确保上传目录存在
+    // Ensure upload directory exists
     try {
       await mkdir(uploadDir, { recursive: true })
     } catch (error) {
-      // 目录可能已存在，忽略错误
+      // Directory may already exist, ignore error
     }
 
-    // 保存文件
+    // Save file
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     await writeFile(filePath, buffer)
 
-    // 创建数据库记录
+    // Create database record
     const document = await prisma.kycDocument.create({
       data: {
         userId: user.id,
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     await logEvent({
       userId: user.id,
       eventType: 'KYC_SUBMITTED',
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       document: {
         id: document.id,
         fileName: document.fileName,
@@ -110,10 +110,10 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('KYC上传错误:', error)
+    console.error('KYC upload error:', error)
     
     return NextResponse.json(
-      { error: '上传失败，请稍后重试' },
+      { error: 'Upload failed, please try again later' },
       { status: 500 }
     )
   }

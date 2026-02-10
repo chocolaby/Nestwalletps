@@ -8,20 +8,20 @@ export async function GET(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未授权' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    // 检查管理员权限
+    // Check admin permission
     if (user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '需要管理员权限' },
+        { error: 'Admin permission required' },
         { status: 403 }
       )
     }
 
-    // 直接返回模拟数据，避免数据库查询问题
+    // Return simulated data directly to avoid database query issues
     const mockOrders = [
       {
         id: '1',
@@ -50,17 +50,17 @@ export async function GET(request: NextRequest) {
     ]
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       orders: mockOrders,
       stats: mockStats,
       total: mockOrders.length
     })
 
   } catch (error) {
-    console.error('获取管理员订单错误:', error)
+    console.error('Get admin orders error:', error)
     
     return NextResponse.json(
-      { error: '获取订单失败' },
+      { error: 'Failed to get orders' },
       { status: 500 }
     )
   }

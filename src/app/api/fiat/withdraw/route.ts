@@ -6,12 +6,12 @@ import { simulateBankTransfer, validateBankCard } from '@/lib/bank'
 import { z } from 'zod'
 
 const withdrawSchema = z.object({
-  amount: z.number().min(100, '最低提现金额为100元'),
-  currency: z.string().min(1, '请选择货币类型'),
+  amount: z.number().min(100, 'Minimum withdrawal amount is 100 CNY'),
+  currency: z.string().min(1, 'Please select currency type'),
   paymentMethod: z.enum(['BANK_CARD', 'ALIPAY', 'WECHAT']),
-  bankAccount: z.string().min(1, '请输入银行卡号'),
+  bankAccount: z.string().min(1, 'Please enter bank card number'),
   bankName: z.string().optional(),
-  accountHolder: z.string().min(1, '请输入持卡人姓名')
+  accountHolder: z.string().min(1, 'Please enter cardholder name')
 })
 
 export async function POST(request: NextRequest) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未授权' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
@@ -30,18 +30,18 @@ export async function POST(request: NextRequest) {
     
     const { amount, currency, paymentMethod, bankAccount, bankName, accountHolder } = validatedData
 
-    // 验证银行卡
+    // Validate bank card
     if (paymentMethod === 'BANK_CARD') {
       const isValidCard = validateBankCard(bankAccount)
       if (!isValidCard) {
         return NextResponse.json(
-          { error: '银行卡号格式不正确（需要16-19位数字）' },
+          { error: 'Invalid bank card number (requires 16-19 digits)' },
           { status: 400 }
         )
       }
     }
 
-    // 使用Prisma创建提现订单
+    // Create withdrawal order using Prisma
     const fiatOrder = await prisma.fiatOrder.create({
       data: {
         userId: user.id,
@@ -56,17 +56,17 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 模拟银行转账处理
+    // Simulate bank transfer processing
     const transferResult = await simulateBankTransfer({
       fromAccount: 'NESTWALLET_MAIN',
       toAccount: bankAccount,
       amount,
       currency,
       reference: fiatOrder.id,
-      memo: `提现到${paymentMethod}`
+      memo: `Withdrawal to ${paymentMethod}`
     })
 
-    // 更新订单状态
+    // Update order status
     const finalStatus = transferResult.status === 'SUCCESS' ? 'COMPLETED' : 
                        transferResult.status === 'PENDING' ? 'PROCESSING' : 'FAILED'
     
@@ -74,11 +74,11 @@ export async function POST(request: NextRequest) {
       where: { id: fiatOrder.id },
       data: { 
         status: finalStatus,
-        note: `处理费: ${transferResult.fee}, 交易ID: ${transferResult.transactionId}`
+        note: `Processing fee: ${transferResult.fee}, Transaction ID: ${transferResult.transactionId}`
       }
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     try {
       await SiemLogger.logEvent({
         userId: user.id,
@@ -98,16 +98,16 @@ export async function POST(request: NextRequest) {
         ipAddress: request.headers.get('x-forwarded-for') || 'unknown'
       })
     } catch (logError) {
-      console.error('SIEM日志记录失败:', logError)
+      console.error('SIEMlogRecordfailed:', logError)
     }
 
     const isSuccess = transferResult.status === 'SUCCESS' || transferResult.status === 'PENDING'
     
     return NextResponse.json({
-      success: true,
+      successful: true,
       message: isSuccess ? 
-        `提现申请已提交，预计处理时间: ${transferResult.estimatedTime}` : 
-        `提现失败: ${transferResult.message}`,
+        `Withdrawal request submitted, estimated processing time: ${transferResult.estimatedTime}` : 
+        `Withdrawal failed: ${transferResult.message}`,
       order: {
         id: fiatOrder.id,
         amount,
@@ -122,17 +122,17 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('提现申请错误:', error)
+    console.error('Withdrawal request error:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: '输入验证失败', details: error.issues },
+        { error: 'Input validation failed', details: error.issues },
         { status: 400 }
       )
     }
     
     return NextResponse.json(
-      { error: '申请失败，请稍后重试' },
+      { error: 'Request failed, please try again later' },
       { status: 500 }
     )
   }

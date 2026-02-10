@@ -25,27 +25,27 @@ export async function POST(request: NextRequest) {
     const { action, token } = setup2FASchema.parse(body)
 
     if (action === 'generate') {
-      // 生成2FA密钥
+      // Generate 2FA secret
       const secret = speakeasy.generateSecret({
         name: `NestWallet (${user.email})`,
         issuer: 'NestWallet',
         length: 32
       })
 
-      // 生成QR码
+      // Generate QR code
       const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url!)
 
-      // 临时存储密钥（未验证状态）
+      // Temporarily store secret (unverified state)
       await prisma.user.update({
         where: { id: user.id },
         data: {
           twoFactorSecret: secret.base32,
-          twoFactorEnabled: false // 还未验证
+          twoFactorEnabled: false // Not yet verified
         }
       })
 
       return NextResponse.json({
-        success: true,
+        successful: true,
         secret: secret.base32,
         qrCode: qrCodeUrl,
         manualEntryKey: secret.base32
@@ -54,12 +54,12 @@ export async function POST(request: NextRequest) {
     } else if (action === 'verify') {
       if (!token) {
         return NextResponse.json(
-          { error: '请输入验证码' },
+          { error: 'Please enter verification code' },
           { status: 400 }
         )
       }
 
-      // 获取用户的临时密钥
+      // Get user's temporary secret
       const userRecord = await prisma.user.findUnique({
         where: { id: user.id },
         select: { twoFactorSecret: true }
@@ -67,27 +67,27 @@ export async function POST(request: NextRequest) {
 
       if (!userRecord?.twoFactorSecret) {
         return NextResponse.json(
-          { error: '请先生成2FA密钥' },
+          { error: 'Please generate 2FA secret first' },
           { status: 400 }
         )
       }
 
-      // 验证TOTP令牌
+      // Verify TOTP token
       const verified = speakeasy.totp.verify({
         secret: userRecord.twoFactorSecret,
         encoding: 'base32',
         token: token,
-        window: 2 // 允许时间窗口误差
+        window: 2 // Allow time window error
       })
 
       if (!verified) {
         return NextResponse.json(
-          { error: '验证码无效' },
+          { error: 'Verification code invalid' },
           { status: 400 }
         )
       }
 
-      // 启用2FA
+      // Enable 2FA
       await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // 记录2FA启用事件
+      // Record 2FA enabled event
       const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
       await SiemLogger.logSecurityAlert(user.id, '2FA_ENABLED', {
         message: 'Two-factor authentication enabled',
@@ -103,8 +103,8 @@ export async function POST(request: NextRequest) {
       })
 
       return NextResponse.json({
-        success: true,
-        message: '两步验证已成功启用'
+        successful: true,
+        message: 'Two-factor authentication enabled successfulfully'
       })
     }
 

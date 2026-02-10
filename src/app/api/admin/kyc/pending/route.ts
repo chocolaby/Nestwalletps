@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '无权限' },
+        { error: 'No permission' },
         { status: 403 }
       )
     }
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       documents: documents.map(doc => ({
         id: doc.id,
         userId: doc.userId,
@@ -43,10 +43,10 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('获取待审KYC错误:', error)
+    console.error('Get pending KYC error:', error)
     
     return NextResponse.json(
-      { error: '获取数据失败' },
+      { error: 'Failed to get data' },
       { status: 500 }
     )
   }

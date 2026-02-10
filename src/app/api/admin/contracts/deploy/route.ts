@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '无权限' },
+        { error: 'No permission' },
         { status: 403 }
       )
     }
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, symbol, decimals, initialSupply } = deployContractSchema.parse(body)
 
-    // 部署合约
+    // Deploy contract
     const deployResult = await deployContract({
       name,
       symbol,
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       initialSupply
     })
 
-    // 保存合约信息到数据库
+    // Save contract info to database
     const contract = await prisma.smartContract.create({
       data: {
         name: `${name} (${symbol})`,
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     await SiemLogger.logEvent({
       userId: user.id,
       eventType: 'ADMIN_ACTION',
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       contract: {
         id: contract.id,
         name: contract.name,

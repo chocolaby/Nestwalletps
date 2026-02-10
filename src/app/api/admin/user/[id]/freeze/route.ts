@@ -12,7 +12,7 @@ export async function POST(
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '无权限' },
+        { error: 'No permission' },
         { status: 403 }
       )
     }
@@ -23,31 +23,31 @@ export async function POST(
 
     if (!reason) {
       return NextResponse.json(
-        { error: '请提供冻结原因' },
+        { error: 'Please provide freeze reason' },
         { status: 400 }
       )
     }
 
-    // 检查目标用户是否存在
+    // Check if target user exists
     const targetUser = await prisma.user.findUnique({
       where: { id: targetUserId }
     })
 
     if (!targetUser) {
       return NextResponse.json(
-        { error: '用户不存在' },
+        { error: 'User does not exist' },
         { status: 404 }
       )
     }
 
     if (targetUser.isFrozen) {
       return NextResponse.json(
-        { error: '用户已被冻结' },
+        { error: 'User is already frozen' },
         { status: 400 }
       )
     }
 
-    // 冻结用户账户
+    // Freeze user account
     await prisma.user.update({
       where: { id: targetUserId },
       data: {
@@ -58,7 +58,7 @@ export async function POST(
       }
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     await SiemLogger.logSecurityAlert(targetUserId, 'ACCOUNT_FREEZE', {
       frozenBy: user.id,
       frozenByEmail: user.email,
@@ -67,15 +67,15 @@ export async function POST(
     })
 
     return NextResponse.json({
-      success: true,
-      message: '账户已冻结'
+      successful: true,
+      message: 'Account frozen'
     })
 
   } catch (error) {
-    console.error('冻结账户错误:', error)
+    console.error('Freeze account error:', error)
     
     return NextResponse.json(
-      { error: '操作失败' },
+      { error: 'Operation failed' },
       { status: 500 }
     )
   }

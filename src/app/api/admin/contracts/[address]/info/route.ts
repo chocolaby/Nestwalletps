@@ -11,17 +11,17 @@ export async function GET(
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '无权限' },
+        { error: 'No permission' },
         { status: 403 }
       )
     }
 
     const contractAddress = params.address
 
-    // 验证地址格式
+    // Validate address format
     if (!/^0x[a-fA-F0-9]{40}$/.test(contractAddress)) {
       return NextResponse.json(
-        { error: '合约地址格式无效' },
+        { error: 'Invalid contract address format' },
         { status: 400 }
       )
     }
@@ -29,7 +29,7 @@ export async function GET(
     const tokenInfo = await getTokenInfo(contractAddress)
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       tokenInfo
     })
 

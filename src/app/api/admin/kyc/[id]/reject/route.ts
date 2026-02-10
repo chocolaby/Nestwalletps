@@ -12,7 +12,7 @@ export async function POST(
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '无权限' },
+        { error: 'No permission' },
         { status: 403 }
       )
     }
@@ -21,7 +21,7 @@ export async function POST(
     const { reason } = body
     const docId = params.id
 
-    // 更新文档状态
+    // Update document status
     const document = await prisma.kycDocument.update({
       where: { id: docId },
       data: {
@@ -29,7 +29,7 @@ export async function POST(
       }
     })
 
-    // 更新用户KYC状态
+    // Update user KYC status
     await prisma.user.update({
       where: { id: document.userId },
       data: {
@@ -37,7 +37,7 @@ export async function POST(
       }
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     await logEvent({
       userId: document.userId,
       eventType: 'KYC_REJECTED',
@@ -53,15 +53,15 @@ export async function POST(
     })
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       document
     })
 
   } catch (error) {
-    console.error('拒绝KYC错误:', error)
+    console.error('Reject KYC error:', error)
     
     return NextResponse.json(
-      { error: '拒绝失败' },
+      { error: 'Rejection failed' },
       { status: 500 }
     )
   }

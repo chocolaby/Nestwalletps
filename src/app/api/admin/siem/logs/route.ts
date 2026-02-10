@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '无权限' },
+        { error: 'No permission' },
         { status: 403 }
       )
     }
@@ -35,15 +35,15 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       logs
     })
 
   } catch (error) {
-    console.error('获取SIEM日志错误:', error)
+    console.error('Get SIEM logs error:', error)
     
     return NextResponse.json(
-      { error: '获取数据失败' },
+      { error: 'Failed to get data' },
       { status: 500 }
     )
   }

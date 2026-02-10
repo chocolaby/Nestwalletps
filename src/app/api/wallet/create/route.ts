@@ -7,8 +7,8 @@ import { z } from 'zod'
 
 const createWalletSchema = z.object({
   type: z.enum(['CUSTODIAL', 'NON_CUSTODIAL']),
-  privateKey: z.string().optional(), // 用于私钥导入
-  mnemonic: z.string().optional() // 用于助记词导入
+  privateKey: z.string().optional(), // For private key import
+  mnemonic: z.string().optional() // For mnemonic import
 })
 
 export async function POST(request: NextRequest) {
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     let privateKeyToStore: string | null = null
 
     if (importedMnemonic) {
-      // 从助记词导入钱包
+      // Import wallet from mnemonic
       try {
         const { walletFromMnemonic } = await import('@/lib/wallet')
         const wallet = walletFromMnemonic(importedMnemonic.trim())
@@ -39,12 +39,12 @@ export async function POST(request: NextRequest) {
         }
       } catch (error) {
         return NextResponse.json(
-          { error: '无效的助记词，请检查是否正确输入12个单词' },
+          { error: 'Invalid mnemonic, please check if 12 words are entered correctly' },
           { status: 400 }
         )
       }
     } else if (importedPrivateKey) {
-      // 从私钥导入钱包
+      // Import wallet from private key
       try {
         const { ethers } = await import('ethers')
         const wallet = new ethers.Wallet(importedPrivateKey)
@@ -55,21 +55,21 @@ export async function POST(request: NextRequest) {
         }
       } catch (error) {
         return NextResponse.json(
-          { error: '无效的私钥格式' },
+          { error: 'Invalid private key format' },
           { status: 400 }
         )
       }
     } else {
-      // 创建新钱包
+      // Create new wallet
       walletData = createWallet()
     }
 
-    // 如果是托管钱包，加密并存储私钥
+    // If custodial wallet, encrypt and store private key
     if (type === 'CUSTODIAL') {
       privateKeyToStore = encryptPrivateKey(walletData.privateKey)
     }
 
-    // 检查钱包地址是否已存在
+    // Check if wallet address already exists
     const existingWallet = await prisma.wallet.findUnique({
       where: { address: walletData.address }
     })
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 创建钱包记录
+    // Create wallet record
     const wallet = await prisma.wallet.create({
       data: {
         userId: user.id,
@@ -91,19 +91,19 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 获取初始ETH余额（如果RPC不可用，使用0）
+    // Get initial ETH balance (use 0 if RPC unavailable)
     let ethBalance = '0'
     try {
       ethBalance = await getEthBalance(walletData.address)
     } catch (error) {
-      console.log('无法获取ETH余额，使用默认值0')
+      console.log('Unable to get ETH balance, using default value 0')
     }
 
-    // 创建ETH余额记录
+    // Create ETH balance record
     await prisma.tokenBalance.create({
       data: {
         walletId: wallet.id,
-        tokenAddress: '0x0000000000000000000000000000000000000000', // ETH的特殊地址
+        tokenAddress: '0x0000000000000000000000000000000000000000', // ETH's special address
         tokenSymbol: 'ETH',
         tokenName: 'Ethereum',
         balance: ethBalance,
@@ -111,16 +111,16 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     try {
       await SiemLogger.logWalletCreated(user.id, walletData.address, type)
     } catch (error) {
-      console.log('SIEM日志记录失败，继续执行')
+      console.log('SIEM logging failed, continuing execution')
     }
 
-    // 返回钱包信息（不包含私钥）
+    // Return wallet info (excluding private key)
     const response: any = {
-      success: true,
+      successful: true,
       wallet: {
         id: wallet.id,
         address: wallet.address,
@@ -130,11 +130,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 如果是非托管钱包，返回私钥和助记词供用户备份
+    // If non-custodial wallet, return private key and mnemonic for user backup
     if (type === 'NON_CUSTODIAL') {
       response.privateKey = walletData.privateKey
       response.mnemonic = walletData.mnemonic
-      response.warning = '请务必安全备份您的私钥和助记词！它们不会存储在我们的服务器上。'
+      response.warning = 'Please securely backup your private key and mnemonic! They will not be stored on our servers.'
     }
 
     return NextResponse.json(response)

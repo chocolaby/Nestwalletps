@@ -11,7 +11,7 @@ const notificationSettingsSchema = z.object({
   marketingNotifications: z.boolean().optional()
 })
 
-// 获取通知设置
+// Get notification settings
 export async function GET(request: NextRequest) {
   try {
     const user = await getUserFromRequest(request)
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // 从数据库获取用户通知设置
+    // Get user notification settings from database
     const settings = await prisma.$queryRaw`
       SELECT 
         email_notifications as emailNotifications,
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       WHERE user_id = ${user.id}
     ` as any[]
 
-    // 如果没有设置记录，返回默认值
+    // Return default values if no settings record exists
     const defaultSettings = {
       emailNotifications: true,
       transactionNotifications: true,
@@ -43,17 +43,17 @@ export async function GET(request: NextRequest) {
     const userSettings = settings.length > 0 ? settings[0] : defaultSettings
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       settings: userSettings
     })
 
   } catch (error) {
-    console.error('获取通知设置失败:', error)
-    return NextResponse.json({ error: '获取通知设置失败' }, { status: 500 })
+    console.error('Failed to get notification settings:', error)
+    return NextResponse.json({ error: 'Failed to get notification settings' }, { status: 500 })
   }
 }
 
-// 更新通知设置
+// Update notification settings
 export async function POST(request: NextRequest) {
   try {
     const user = await getUserFromRequest(request)
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const settings = notificationSettingsSchema.parse(body)
 
-    // 使用 UPSERT 操作更新或插入设置
+    // Use UPSERT operation to update or insert settings
     await prisma.$executeRaw`
       INSERT INTO user_notification_settings (
         user_id, 
@@ -95,13 +95,13 @@ export async function POST(request: NextRequest) {
     `
 
     return NextResponse.json({
-      success: true,
-      message: '通知设置已更新',
+      successful: true,
+      message: 'Notification settings updated',
       settings
     })
 
   } catch (error) {
-    console.error('更新通知设置失败:', error)
+    console.error('Failed to update notification settings:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -110,6 +110,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ error: '更新通知设置失败' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to update notification settings' }, { status: 500 })
   }
 }

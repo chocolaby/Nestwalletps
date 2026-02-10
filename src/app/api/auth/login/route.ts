@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, password } = loginSchema.parse(body)
 
-    // 查找用户
+    // Find user
     const user = await prisma.user.findUnique({
       where: { email }
     })
@@ -26,14 +26,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 验证密码
+    // Verify password
     const isValidPassword = await verifyPassword(password, user.passwordHash)
     
     const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
     if (!isValidPassword) {
-      // 记录失败的登录尝试
+      // Record failed login attempt
       await SiemLogger.logLogin(user.id, false, clientIP, userAgent)
       
       return NextResponse.json(
@@ -42,17 +42,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 生成JWT令牌
+    // Generate JWT token
     const token = generateToken({
       userId: user.id,
       email: user.email,
       role: user.role
     })
 
-    // 记录成功登录
+    // Record successful login
     await SiemLogger.logLogin(user.id, true, clientIP, userAgent)
 
-    // 返回用户信息（不包含密码）
+    // Return user info（excluding password）
     const userResponse = {
       id: user.id,
       email: user.email,
@@ -61,9 +61,9 @@ export async function POST(request: NextRequest) {
       createdAt: user.createdAt
     }
 
-    // 设置Cookie
+    // Set Cookie
     const response = NextResponse.json({
-      success: true,
+      successful: true,
       user: userResponse
     })
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       maxAge: 7 * 24 * 60 * 60 // 7 days
     })
     
-    console.log('🍪 Cookie已设置:', { token: token.substring(0, 20) + '...' })
+    console.log('🍪 CookiesetSet:', { token: token.substring(0, 20) + '...' })
 
     return response
 

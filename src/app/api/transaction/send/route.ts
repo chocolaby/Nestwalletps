@@ -6,7 +6,7 @@ import { SiemLogger } from '@/lib/siem'
 import { z } from 'zod'
 import crypto from 'crypto'
 
-// 内联解密函数，确保使用正确的密钥
+// Inline decryption function to ensure correct key is used
 function decryptPrivateKeyInline(encryptedPrivateKey: string): string {
   const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'nest-wallet-encryption-key-32chars'
   const algorithm = 'aes-256-cbc'
@@ -36,11 +36,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log('收到转账请求:', JSON.stringify(body, null, 2))
+    console.log('Received transfer request:', JSON.stringify(body, null, 2))
     const { fromWalletId, to: toAddress, amount, tokenAddress } = sendTransactionSchema.parse(body)
-    console.log('解析后:', { fromWalletId, toAddress, amount, tokenAddress })
+    console.log('After parsing:', { fromWalletId, toAddress, amount, tokenAddress })
 
-    // 获取发送方钱包
+    // Get sender wallet
     const fromWallet = await prisma.wallet.findFirst({
       where: { id: fromWalletId, userId: user.id }
     })
@@ -50,50 +50,50 @@ export async function POST(request: NextRequest) {
     }
 
     if (fromWallet.type === 'NON_CUSTODIAL') {
-      return NextResponse.json({ error: '非托管钱包需要客户端签名，请使用托管钱包进行转账' }, { status: 400 })
+      return NextResponse.json({ error: 'Non-custodial wallet requires client-side signing, please use custodial wallet for transfers' }, { status: 400 })
     }
 
-    // 解密私钥
+    // Decrypt private key
     if (!fromWallet.privateKeyEncrypted) {
       return NextResponse.json({ error: 'Wallet private key not found' }, { status: 400 })
     }
     
     let privateKey
     try {
-      // 检查是否是加密的私钥（包含冒号）还是原始私钥
+      // Check if encrypted private key (contains colon) or raw private key
       if (fromWallet.privateKeyEncrypted.includes(':')) {
-        console.log('检测到加密私钥，尝试解密...')
+        console.log('Detected encrypted private key, attempting to decrypt...')
         privateKey = decryptPrivateKeyInline(fromWallet.privateKeyEncrypted)
       } else {
-        console.log('检测到原始私钥，直接使用')
+        console.log('Detected raw private key, using directly')
         privateKey = fromWallet.privateKeyEncrypted
       }
-      console.log('私钥获取成功, 长度:', privateKey.length)
+      console.log('Private key retrievedsuccessful, length:', privateKey.length)
     } catch (error) {
       console.error('Private key decryption failed:', error)
       return NextResponse.json({ error: 'Failed to decrypt private key' }, { status: 500 })
     }
 
-    // 检查钱包余额是否足够
+    // Check if wallet balance is sufficient
     try {
       const { getEthBalance } = await import('@/lib/wallet')
       const currentBalance = await getEthBalance(fromWallet.address)
       const balanceNum = parseFloat(currentBalance)
       const amountNum = parseFloat(amount)
-      const estimatedGas = 0.00042 // 估算Gas费用
+      const estimatedGas = 0.00042 // Estimate gas fee
       
-      console.log(`余额检查: 当前=${balanceNum} ETH, 需要=${amountNum + estimatedGas} ETH`)
+      console.log(`Balance check: current=${balanceNum} ETH, need=${amountNum + estimatedGas} ETH`)
       
       if (balanceNum < (amountNum + estimatedGas)) {
         return NextResponse.json({ 
-          error: `余额不足: 需要 ${(amountNum + estimatedGas).toFixed(6)} ETH，但只有 ${balanceNum.toFixed(6)} ETH` 
+          error: `Insufficient balance: need ${(amountNum + estimatedGas).toFixed(6)} ETH，but only have ${balanceNum.toFixed(6)} ETH` 
         }, { status: 400 })
       }
     } catch (balanceError) {
-      console.warn('余额检查失败，继续执行:', balanceError)
+      console.warn('Balance checkfailed，continuing execution:', balanceError)
     }
 
-    // 创建交易记录
+    // Create transaction record
     const transaction = await prisma.transaction.create({
       data: {
         fromWalletId,
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     })
 
     try {
-      // 发送交易 - 添加重试机制
+      // Send transaction - add retry mechanism
       let txHash: string = ''
       let gasUsed: string = '0'
       let gasPrice: string = '0'
@@ -118,38 +118,38 @@ export async function POST(request: NextRequest) {
       while (attempts < maxAttempts) {
         try {
           attempts++
-          console.log(`尝试发送交易 (第${attempts}次)...`)
+          console.log(`Attempting to send transaction (Attempt${attempts}attempt)...`)
 
           if (tokenAddress) {
-            // 发送代币
+            // Send token
             const result = await sendToken(privateKey, toAddress, amount, tokenAddress)
             txHash = result.txHash
             gasUsed = result.gasUsed
             gasPrice = result.gasPrice
           } else {
-            // 发送ETH
+            // Send ETH
             const result = await sendEth(privateKey, toAddress, amount)
             txHash = result.txHash
             gasUsed = result.gasUsed
             gasPrice = result.gasPrice
           }
 
-          console.log(`交易发送成功: ${txHash}`)
-          break // 成功则跳出循环
+          console.log(`Transaction sent successfulfully: ${txHash}`)
+          break // Break loop on successful
 
         } catch (sendError) {
-          console.error(`第${attempts}次发送失败:`, sendError)
+          console.error(`Attempt${attempts}attemptsendingfailed:`, sendError)
           
           if (attempts >= maxAttempts) {
-            throw sendError // 达到最大重试次数，抛出错误
+            throw sendError // Reached maximum retry attempts, throw error
           }
           
-          // 等待一段时间后重试
+          // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, 1000 * attempts))
         }
       }
 
-      // 更新交易记录
+      // Update transaction record
       await prisma.transaction.update({
         where: { id: transaction.id },
         data: {
@@ -160,11 +160,11 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // 记录SIEM日志
+      // Record SIEM log
       await SiemLogger.logTransaction(user.id, transaction.id, amount, fromWallet.address, toAddress)
 
       return NextResponse.json({
-        success: true,
+        successful: true,
         transaction: {
           id: transaction.id,
           txHash: txHash,
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
       })
 
     } catch (error) {
-      // 更新交易状态为失败
+      // Update transaction status to failed
       await prisma.transaction.update({
         where: { id: transaction.id },
         data: { status: 'FAILED' }

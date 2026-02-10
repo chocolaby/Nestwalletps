@@ -6,11 +6,11 @@ import { SiemLogger } from '@/lib/siem'
 import { z } from 'zod'
 
 const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, '请输入当前密码'),
-  newPassword: z.string().min(8, '新密码至少需要8个字符'),
-  confirmPassword: z.string().min(1, '请确认新密码')
+  currentPassword: z.string().min(1, 'Please enter current password'),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm new password')
 }).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "新密码和确认密码不匹配",
+  message: "New password and confirm password do not match",
   path: ["confirmPassword"],
 })
 
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { currentPassword, newPassword } = changePasswordSchema.parse(body)
 
-    // 获取用户当前密码哈希
+    // Get user's current password hash
     const userRecord = await prisma.user.findUnique({
       where: { id: user.id },
       select: { passwordHash: true }
@@ -40,31 +40,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 验证当前密码
+    // Verify current password
     const isCurrentPasswordValid = await verifyPassword(currentPassword, userRecord.passwordHash)
     if (!isCurrentPasswordValid) {
-      // 记录密码修改失败尝试
+      // Record failed password change attempt
       await SiemLogger.logPasswordChangeAttempt(user.id, false, 'Invalid current password')
       
       return NextResponse.json(
-        { error: '当前密码不正确' },
+        { error: 'Current password is incorrect' },
         { status: 400 }
       )
     }
 
-    // 检查新密码是否与当前密码相同
+    // Check if new password is same as current password
     const isSamePassword = await verifyPassword(newPassword, userRecord.passwordHash)
     if (isSamePassword) {
       return NextResponse.json(
-        { error: '新密码不能与当前密码相同' },
+        { error: 'New password cannot be the same as current password' },
         { status: 400 }
       )
     }
 
-    // 哈希新密码
+    // Hash new password
     const newPasswordHash = await hashPassword(newPassword)
 
-    // 更新密码
+    // Update password
     await prisma.user.update({
       where: { id: user.id },
       data: { 
@@ -73,28 +73,28 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 记录成功的密码修改
+    // Record successfulful password change
     const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
-    await SiemLogger.logPasswordChangeAttempt(user.id, true, 'Password changed successfully', clientIP)
+    await SiemLogger.logPasswordChangeAttempt(user.id, true, 'Password changed successfulfully', clientIP)
 
-    // TODO: 创建通知 (需要重新生成Prisma客户端后启用)
+    // TODO: Create notification (enable after regenerating Prisma client)
     // try {
     //   await prisma.notification.create({
     //     data: {
     //       userId: user.id,
     //       type: 'SECURITY',
-    //       title: '密码修改成功',
-    //       message: '您的账户密码已成功修改。如果这不是您本人的操作，请立即联系客服。',
+    //       title: 'Password changed successfulfully',
+    //       message: 'Your account password has been changed successfully. If this was not you, please contact customer service immediately.',
     //       read: false
     //     }
     //   })
     // } catch (notificationError) {
-    //   console.log('创建通知失败，但密码修改成功:', notificationError)
+    //   console.log('Failed to create notification, but password changed successfully:', notificationError)
     // }
 
     return NextResponse.json({
-      success: true,
-      message: '密码修改成功'
+      successful: true,
+      message: 'Password changed successfulfully'
     })
 
   } catch (error) {

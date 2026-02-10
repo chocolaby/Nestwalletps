@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// 获取用户登录历史
+// Get user login history
 export async function GET(request: NextRequest) {
   try {
     const user = await getUserFromRequest(request)
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // 从SIEM事件中获取登录历史
+    // Get login history from SIEM events
     const loginHistory = await prisma.$queryRaw`
       SELECT 
         id,
@@ -31,13 +31,13 @@ export async function GET(request: NextRequest) {
       LIMIT ${limit} OFFSET ${offset}
     ` as any[]
 
-    // 解析事件数据
+    // Parse event data
     const parsedHistory = loginHistory.map(event => {
       let eventData = {}
       try {
         eventData = JSON.parse(event.eventData || '{}')
       } catch (e) {
-        // 忽略解析错误
+        // Ignore parse errors
       }
 
       return {
@@ -47,14 +47,14 @@ export async function GET(request: NextRequest) {
         userAgent: event.userAgent,
         location: getLocationFromIP(event.ipAddress),
         device: parseUserAgent(event.userAgent),
-        success: event.eventType === 'LOGIN' || event.eventType === 'LOGOUT',
+        successful: event.eventType === 'LOGIN' || event.eventType === 'LOGOUT',
         riskLevel: event.riskLevel,
         timestamp: event.createdAt,
         details: eventData
       }
     })
 
-    // 获取总数
+    // Get total count
     const totalResult = await prisma.$queryRaw`
       SELECT COUNT(*) as count 
       FROM siem_events 
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const total = totalResult[0]?.count || 0
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       history: parsedHistory,
       pagination: {
         total,
@@ -76,62 +76,62 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('获取登录历史失败:', error)
-    return NextResponse.json({ error: '获取登录历史失败' }, { status: 500 })
+    console.error('get login historyfailed:', error)
+    return NextResponse.json({ error: 'Failed to get login history' }, { status: 500 })
   }
 }
 
-// 简单的IP地址位置解析（模拟）
+// Simple IP address location parsing (simulated)
 function getLocationFromIP(ip: string): string {
   if (!ip || ip === 'unknown' || ip === '127.0.0.1' || ip === 'localhost') {
-    return '本地'
+    return 'Local'
   }
   
-  // 这里可以集成真实的IP地理位置服务
+  // Real IP geolocation service can be integrated here
   const mockLocations = [
-    '北京市',
-    '上海市', 
-    '广州市',
-    '深圳市',
-    '杭州市',
-    '成都市'
+    'Beijing',
+    'Shanghai', 
+    'Guangzhou',
+    'Shenzhen',
+    'Hangzhou',
+    'Chengdu'
   ]
   
-  // 基于IP的简单哈希来选择位置
+  // Simple hash based on IP to choose location
   const hash = ip.split('.').reduce((acc, part) => acc + parseInt(part), 0)
   return mockLocations[hash % mockLocations.length]
 }
 
-// 解析User-Agent获取设备信息
+// Parse User-Agent to get device info
 function parseUserAgent(userAgent: string): {
   browser: string
   os: string
   device: string
 } {
   if (!userAgent) {
-    return { browser: '未知', os: '未知', device: '未知' }
+    return { browser: 'Unknown', os: 'Unknown', device: 'Unknown' }
   }
 
-  let browser = '未知'
-  let os = '未知'
-  let device = '桌面设备'
+  let browser = 'Unknown'
+  let os = 'Unknown'
+  let device = 'Desktop'
 
-  // 检测浏览器
+  // Detect browser
   if (userAgent.includes('Chrome')) browser = 'Chrome'
   else if (userAgent.includes('Firefox')) browser = 'Firefox'
   else if (userAgent.includes('Safari')) browser = 'Safari'
   else if (userAgent.includes('Edge')) browser = 'Edge'
 
-  // 检测操作系统
+  // Detect operating system
   if (userAgent.includes('Windows')) os = 'Windows'
   else if (userAgent.includes('Mac')) os = 'macOS'
   else if (userAgent.includes('Linux')) os = 'Linux'
   else if (userAgent.includes('Android')) os = 'Android'
   else if (userAgent.includes('iOS')) os = 'iOS'
 
-  // 检测设备类型
-  if (userAgent.includes('Mobile') || userAgent.includes('Android')) device = '移动设备'
-  else if (userAgent.includes('Tablet') || userAgent.includes('iPad')) device = '平板设备'
+  // Detect device type
+  if (userAgent.includes('Mobile') || userAgent.includes('Android')) device = 'Mobile'
+  else if (userAgent.includes('Tablet') || userAgent.includes('iPad')) device = 'Tablet'
 
   return { browser, os, device }
 }

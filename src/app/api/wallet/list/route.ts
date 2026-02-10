@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 获取用户的所有钱包
+    // Get all user wallets
     const wallets = await prisma.wallet.findMany({
       where: { userId: user.id },
       include: {
@@ -22,13 +22,13 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' }
     })
 
-    // 更新每个钱包的余额
+    // Update each wallet balance
     const walletsWithUpdatedBalances = await Promise.all(
       wallets.map(async (wallet) => {
-        // 更新ETH余额
+        // Update ETH balance
         const currentEthBalance = await getEthBalance(wallet.address)
         
-        // 更新数据库中的ETH余额
+        // Update ETH balance in database
         await prisma.tokenBalance.upsert({
           where: {
             walletId_tokenAddress: {
@@ -49,17 +49,17 @@ export async function GET(request: NextRequest) {
           }
         })
 
-        // 更新其他代币余额
+        // Update other token balances
         const updatedBalances = await Promise.all(
           wallet.balances.map(async (balance) => {
             if (balance.tokenAddress === '0x0000000000000000000000000000000000000000') {
-              // ETH余额已经更新
+              // ETH balance already updated
               return {
                 ...balance,
                 balance: currentEthBalance
               }
             } else {
-              // 更新ERC-20代币余额
+              // Update ERC-20 token balance
               const currentBalance = await getTokenBalance(balance.tokenAddress, wallet.address)
               
               await prisma.tokenBalance.update({
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     )
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       wallets: walletsWithUpdatedBalances
     })
 

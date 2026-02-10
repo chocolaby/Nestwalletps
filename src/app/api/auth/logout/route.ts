@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const user = await getUserFromRequest(request)
     
     if (user) {
-      // 记录登出事件
+      // Record logout event
       const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
       const userAgent = request.headers.get('user-agent') || 'unknown'
       
@@ -21,14 +21,14 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 清除认证Cookie
-    const response = NextResponse.json({ success: true })
+    // Clear auth Cookie
+    const response = NextResponse.json({ successful: true })
     
     response.cookies.set('auth-token', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 0 // 立即过期
+      maxAge: 0 // Expire immediately
     })
 
     return response

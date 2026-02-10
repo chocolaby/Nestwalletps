@@ -13,7 +13,7 @@ export async function DELETE(request: NextRequest) {
     const user = await getUserFromRequest(request)
     if (!user) {
       return NextResponse.json(
-        { error: '未授权访问' },
+        { error: 'Unauthorized access' },
         { status: 401 }
       )
     }
@@ -21,7 +21,7 @@ export async function DELETE(request: NextRequest) {
     const body = await request.json()
     const { walletId } = deleteWalletSchema.parse(body)
 
-    // 查找钱包并验证所有权
+    // Find wallet and verify ownership
     const wallet = await prisma.wallet.findUnique({
       where: { id: walletId },
       include: {
@@ -31,38 +31,38 @@ export async function DELETE(request: NextRequest) {
 
     if (!wallet) {
       return NextResponse.json(
-        { error: '钱包不存在' },
+        { error: 'Wallet not found' },
         { status: 404 }
       )
     }
 
     if (wallet.userId !== user.id) {
       return NextResponse.json(
-        { error: '无权限删除此钱包' },
+        { error: 'No permission to delete this wallet' },
         { status: 403 }
       )
     }
 
-    // 检查是否有余额
+    // Check if has balance
     const hasBalance = wallet.balances.some(balance => 
       parseFloat(balance.balance) > 0
     )
 
     if (hasBalance) {
       return NextResponse.json(
-        { error: '钱包仍有余额，无法删除！请先转出所有资产。' },
+        { error: 'Wallet still has balance, cannot be deleted! Please transfer all assets first.' },
         { status: 400 }
       )
     }
 
-    // 删除相关数据
+    // Delete related data
     await prisma.$transaction(async (tx) => {
-      // 删除余额记录
+      // Delete balance records
       await tx.tokenBalance.deleteMany({
         where: { walletId }
       })
 
-      // 删除交易记录
+      // Delete transaction records
       await tx.transaction.deleteMany({
         where: {
           OR: [
@@ -72,13 +72,13 @@ export async function DELETE(request: NextRequest) {
         }
       })
 
-      // 删除钱包
+      // Delete wallet
       await tx.wallet.delete({
         where: { id: walletId }
       })
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     try {
       await logEvent({
         eventType: 'WALLET_DELETED',
@@ -94,12 +94,12 @@ export async function DELETE(request: NextRequest) {
                   'unknown'
       })
     } catch (error) {
-      console.log('SIEM日志记录失败，继续执行')
+      console.log('SIEM logging failed, continuing execution')
     }
 
     return NextResponse.json({
-      success: true,
-      message: '钱包删除成功'
+      successful: true,
+      message: 'Wallet deleted successfulfully'
     })
 
   } catch (error) {
@@ -109,14 +109,14 @@ export async function DELETE(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: '参数无效', details: error.issues },
+        { error: 'Invalid parameters', details: error.issues },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
       { 
-        error: '服务器内部错误', 
+        error: 'Internal server error', 
         details: errorMessage
       },
       { status: 500 }

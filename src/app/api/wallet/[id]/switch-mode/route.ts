@@ -26,7 +26,7 @@ export async function POST(
     const { newType } = switchModeSchema.parse(body)
     const walletId = params.id
 
-    // 获取钱包信息
+    // Get wallet info
     const wallet = await prisma.wallet.findFirst({
       where: { 
         id: walletId,
@@ -43,7 +43,7 @@ export async function POST(
 
     if (wallet.type === newType) {
       return NextResponse.json(
-        { error: '钱包已经是该模式' },
+        { error: 'Wallet is already in this mode' },
         { status: 400 }
       )
     }
@@ -53,25 +53,25 @@ export async function POST(
     }
 
     if (newType === 'CUSTODIAL') {
-      // 切换到托管模式 - 需要加密存储私钥
+      // Switch to custodial mode - need to encrypt and store private key
       if (!wallet.privateKeyEncrypted) {
-        // 如果没有私钥，生成新的（这种情况不应该发生，但作为安全措施）
+        // If no private key, generate new one (shouldn't happen, but as safety measure)
         const newWalletData = createWallet()
         updateData.privateKeyEncrypted = encryptPrivateKey(newWalletData.privateKey)
       }
-      // 如果已有加密私钥，保持不变
+      // If already has encrypted private key, keep unchanged
     } else {
-      // 切换到非托管模式 - 清除存储的私钥
+      // Switch to non-custodial mode - clear stored private key
       updateData.privateKeyEncrypted = null
     }
 
-    // 更新钱包
+    // Update wallet
     const updatedWallet = await prisma.wallet.update({
       where: { id: walletId },
       data: updateData
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     await SiemLogger.logEvent({
       userId: user.id,
       eventType: 'SECURITY_ALERT',
@@ -88,25 +88,25 @@ export async function POST(
     })
 
     const response: any = {
-      success: true,
+      successful: true,
       wallet: {
         id: updatedWallet.id,
         address: updatedWallet.address,
         type: updatedWallet.type,
         createdAt: updatedWallet.createdAt
       },
-      message: `钱包已切换到${newType === 'CUSTODIAL' ? '托管' : '非托管'}模式`
+      message: `Wallet switched to ${newType === 'CUSTODIAL' ? 'custodial' : 'non-custodial'}mode`
     }
 
-    // 如果切换到非托管模式，返回私钥供用户备份
+    // If switching to non-custodial mode, return private key for user backup
     if (newType === 'NON_CUSTODIAL' && wallet.privateKeyEncrypted) {
       try {
         const privateKey = decryptPrivateKey(wallet.privateKeyEncrypted)
         response.privateKey = privateKey
-        response.warning = '请务必安全备份您的私钥！平台将不再存储此私钥。'
+        response.warning = 'Please securely backup your private key! The platform will no longer store this private key.'
       } catch (error) {
-        console.error('解密私钥失败:', error)
-        response.warning = '私钥解密失败，请联系客服处理。'
+        console.error('decrypting private keyfailed:', error)
+        response.warning = 'Private key decryption failed, please contact customer service.'
       }
     }
 

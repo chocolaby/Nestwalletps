@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未授权' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const status = user.kycStatus
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       status,
       documents: documents.map(doc => ({
         id: doc.id,
@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('查询KYC状态错误:', error)
+    console.error('Query KYC status error:', error)
     
     return NextResponse.json(
-      { error: '查询失败' },
+      { error: 'Query failed' },
       { status: 500 }
     )
   }

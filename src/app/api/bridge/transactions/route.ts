@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 
-// 模拟桥接交易数据
+// Simulated bridge transaction data
 const mockBridgeTransactions = [
   {
     id: '1',
@@ -13,7 +13,7 @@ const mockBridgeTransactions = [
     tokenSymbol: 'USDT',
     status: 'COMPLETED',
     createdAt: new Date(Date.now() - 3600000).toISOString(),
-    estimatedTime: '3-5分钟',
+    estimatedTime: '3-5 minutes',
     fee: '0.1'
   },
   {
@@ -26,7 +26,7 @@ const mockBridgeTransactions = [
     tokenSymbol: 'USDC',
     status: 'PROCESSING',
     createdAt: new Date(Date.now() - 1800000).toISOString(),
-    estimatedTime: '2-3分钟',
+    estimatedTime: '2-3 minutes',
     fee: '0.05'
   },
   {
@@ -39,7 +39,7 @@ const mockBridgeTransactions = [
     tokenSymbol: 'ETH',
     status: 'FAILED',
     createdAt: new Date(Date.now() - 7200000).toISOString(),
-    estimatedTime: '1-2分钟',
+    estimatedTime: '1-2 minutes',
     fee: '0.025'
   }
 ]
@@ -54,16 +54,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // 在实际应用中，这里应该从数据库查询用户的桥接交易
-    // 现在返回模拟数据
+    // In real application, should query user's bridge transactions from database
+    // Now return simulated data
     const userTransactions = mockBridgeTransactions.map(tx => ({
       ...tx,
-      // 模拟用户ID匹配
+      // Simulate user ID matching
       userId: user.id
     }))
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       transactions: userTransactions
     })
 

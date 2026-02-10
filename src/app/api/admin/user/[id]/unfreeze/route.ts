@@ -12,33 +12,33 @@ export async function POST(
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '无权限' },
+        { error: 'No permission' },
         { status: 403 }
       )
     }
 
     const targetUserId = params.id
 
-    // 检查目标用户是否存在
+    // Check if target user exists
     const targetUser = await prisma.user.findUnique({
       where: { id: targetUserId }
     })
 
     if (!targetUser) {
       return NextResponse.json(
-        { error: '用户不存在' },
+        { error: 'User does not exist' },
         { status: 404 }
       )
     }
 
     if (!targetUser.isFrozen) {
       return NextResponse.json(
-        { error: '用户未被冻结' },
+        { error: 'User is not frozen' },
         { status: 400 }
       )
     }
 
-    // 解冻用户账户
+    // Unfreeze user account
     await prisma.user.update({
       where: { id: targetUserId },
       data: {
@@ -49,7 +49,7 @@ export async function POST(
       }
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     await logEvent({
       userId: targetUserId,
       eventType: 'ADMIN_ACTION',
@@ -64,15 +64,15 @@ export async function POST(
     })
 
     return NextResponse.json({
-      success: true,
-      message: '账户已解冻'
+      successful: true,
+      message: 'Account unfrozen'
     })
 
   } catch (error) {
-    console.error('解冻账户错误:', error)
+    console.error('Unfreeze account error:', error)
     
     return NextResponse.json(
-      { error: '操作失败' },
+      { error: 'Operation failed' },
       { status: 500 }
     )
   }

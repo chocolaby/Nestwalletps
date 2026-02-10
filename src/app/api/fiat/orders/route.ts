@@ -8,12 +8,12 @@ export async function GET(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未授权' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    // 直接使用SQL查询
+    // Use SQL query directly
     const orders = await prisma.$queryRaw<any[]>`
       SELECT id, user_id as userId, type, amount, currency, status, bank_account as bankAccount, bank_name as bankName, created_at as createdAt
       FROM fiat_orders
@@ -23,16 +23,16 @@ export async function GET(request: NextRequest) {
     `
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       orders: orders || []
     })
 
   } catch (error) {
-    console.error('获取订单错误:', error)
+    console.error('Get orders error:', error)
     
-    // 如果表不存在，返回空数组
+    // If table doesn't exist, return empty array
     return NextResponse.json({
-      success: true,
+      successful: true,
       orders: []
     })
   }

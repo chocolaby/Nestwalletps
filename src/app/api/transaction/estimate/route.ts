@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未授权' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
@@ -18,62 +18,62 @@ export async function POST(request: NextRequest) {
 
     if (!to || !amount) {
       return NextResponse.json(
-        { error: '参数缺失' },
+        { error: 'Missing parameters' },
         { status: 400 }
       )
     }
 
-    // 验证地址格式
+    // Validate address format
     if (!ethers.isAddress(to)) {
       return NextResponse.json(
-        { error: '地址格式无效' },
+        { error: 'Invalid address format' },
         { status: 400 }
       )
     }
 
-    // from参数可选，如果没有提供则使用默认地址
+    // from parameter is optional, use default address if not provided
     const fromAddress = from || '0x0000000000000000000000000000000000000000'
     if (from && !ethers.isAddress(from)) {
       return NextResponse.json(
-        { error: '发送地址格式无效' },
+        { error: 'Invalid sender address format' },
         { status: 400 }
       )
     }
 
-    // 连接到RPC（如果可用）
+    // Connect to RPC (if available)
     const rpcUrl = process.env.ANVIL_RPC_URL || 'http://localhost:8545'
-    let gasLimit = '21000' // ETH转账默认
+    let gasLimit = '21000' // ETH transfer default
     let gasPrice = '20000000000' // 20 Gwei
-    let totalCost = '0.00042' // 默认估算
+    let totalCost = '0.00042' // Default estimate
 
     try {
       const provider = new ethers.JsonRpcProvider(rpcUrl)
       
-      // 获取当前gas price
+      // Get current gas price
       const feeData = await provider.getFeeData()
       if (feeData.gasPrice) {
         gasPrice = feeData.gasPrice.toString()
       }
 
-      // 估算gas limit
+      // Estimate gas limit
       if (token === 'ETH') {
         gasLimit = '21000'
       } else {
-        // ERC-20转账需要更多gas
+        // ERC-20 transfer requires more gas
         gasLimit = '65000'
       }
 
-      // 计算总费用
+      // Calculate total cost
       const cost = (parseInt(gasLimit) * parseInt(gasPrice)) / 1e18
       totalCost = cost.toFixed(8)
 
     } catch (error) {
-      console.log('无法连接到RPC，使用默认值')
-      // 使用默认值，不抛出错误
+      console.log('Unable to connect to RPC, using default values')
+      // Use default values, don't throw error
     }
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       gasLimit,
       gasPrice,
       totalCost,
@@ -84,10 +84,10 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Gas估算错误:', error)
+    console.error('Gas estimation error:', error)
     
     return NextResponse.json(
-      { error: 'Gas估算失败' },
+      { error: 'Gas estimation failed' },
       { status: 500 }
     )
   }

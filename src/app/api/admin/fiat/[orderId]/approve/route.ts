@@ -12,15 +12,15 @@ export async function POST(
     
     if (!user) {
       return NextResponse.json(
-        { error: '未授权' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    // 检查管理员权限
+    // Check admin permission
     if (user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '需要管理员权限' },
+        { error: 'Admin permission required' },
         { status: 403 }
       )
     }
@@ -31,19 +31,19 @@ export async function POST(
 
     if (!action || !['approve', 'reject'].includes(action)) {
       return NextResponse.json(
-        { error: '无效的操作类型' },
+        { error: 'Invalid operation type' },
         { status: 400 }
       )
     }
 
-    // 查询订单
+    // Query order
     const orders = await prisma.$queryRaw<any[]>`
       SELECT * FROM fiat_orders WHERE id = ${orderId}
     `
 
     if (!orders || orders.length === 0) {
       return NextResponse.json(
-        { error: '订单不存在' },
+        { error: 'Order does not exist' },
         { status: 404 }
       )
     }
@@ -52,12 +52,12 @@ export async function POST(
 
     if (order.status !== 'PENDING') {
       return NextResponse.json(
-        { error: '订单状态不允许审核' },
+        { error: 'Order status does not allow review' },
         { status: 400 }
       )
     }
 
-    // 更新订单状态
+    // Update order status
     const newStatus = action === 'approve' ? 'APPROVED' : 'REJECTED'
     
     await prisma.$executeRaw`
@@ -70,7 +70,7 @@ export async function POST(
       WHERE id = ${orderId}
     `
 
-    // 记录SIEM日志
+    // Record SIEM log
     await logEvent({
       userId: user.id,
       eventType: 'ADMIN_ACTION',
@@ -89,15 +89,15 @@ export async function POST(
       })
     })
 
-    // 获取更新后的订单
+    // Get updated order
     const updatedOrders = await prisma.$queryRaw<any[]>`
       SELECT * FROM fiat_orders WHERE id = ${orderId}
     `
     const updatedOrder = updatedOrders[0]
 
     return NextResponse.json({
-      success: true,
-      message: `订单已${action === 'approve' ? '批准' : '拒绝'}`,
+      successful: true,
+      message: `Order ${action === 'approve' ? 'approved' : 'rejected'}`,
       order: {
         id: updatedOrder.id,
         type: updatedOrder.type,
@@ -111,10 +111,10 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('审核订单错误:', error)
+    console.error('Review order error:', error)
     
     return NextResponse.json(
-      { error: '审核失败' },
+      { error: 'Review failed' },
       { status: 500 }
     )
   }

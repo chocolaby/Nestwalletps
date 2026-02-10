@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import { NotificationService } from '@/lib/notifications'
 
-// 标记所有通知为已读
+// Mark all notifications as read
 export async function POST(request: NextRequest) {
   try {
     const user = await getUserFromRequest(request)
@@ -10,17 +10,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // 标记用户所有未读通知为已读
+    // Mark all user's unread notifications as read
     const count = await NotificationService.markAllAsRead(user.id)
 
     return NextResponse.json({
-      success: true,
-      message: `已标记 ${count} 条通知为已读`,
+      successful: true,
+      message: `Marked ${count} notifications as read`,
       count
     })
 
   } catch (error) {
-    console.error('标记所有通知已读失败:', error)
-    return NextResponse.json({ error: '操作失败' }, { status: 500 })
+    console.error('marking all notifications as readfailed:', error)
+    return NextResponse.json({ error: 'Operation failed' }, { status: 500 })
   }
 }

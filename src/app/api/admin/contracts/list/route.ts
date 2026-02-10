@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '无权限' },
+        { error: 'No permission' },
         { status: 403 }
       )
     }
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       contracts
     })
 

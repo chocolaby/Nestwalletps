@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       transactions,
       pagination: {
         page,

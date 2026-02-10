@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: '未授权' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
@@ -28,26 +28,26 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { amount, currency, paymentMethod, bankAccount, bankName, accountHolder } = depositSchema.parse(body)
 
-    // 验证金额
+    // Validate amount
     const amountNum = parseFloat(amount)
     if (amountNum <= 0 || amountNum < 100) {
       return NextResponse.json(
-        { error: '最低充值金额为100元' },
+        { error: 'Minimum deposit amount is 100 CNY' },
         { status: 400 }
       )
     }
 
-    // 验证银行卡号（如果是银行卡支付）
+    // Validate bank card number (if bank card payment)
     if (paymentMethod === 'BANK_CARD' && bankAccount) {
       if (!validateBankCard(bankAccount)) {
         return NextResponse.json(
-          { error: '银行卡号格式无效' },
+          { error: 'Invalid bank card number format' },
           { status: 400 }
         )
       }
     }
 
-    // 创建充值订单
+    // Create deposit order
     const fiatOrder = await prisma.fiatOrder.create({
       data: {
         userId: user.id,
@@ -62,20 +62,20 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 模拟银行处理
+    // Simulate bank processing
     let processingResult = null
     if (paymentMethod === 'BANK_CARD' && bankAccount) {
       const bankInfo = getBankInfo(bankAccount)
       processingResult = await simulateBankTransfer({
         fromAccount: bankAccount,
-        toAccount: '6222021234567890', // 平台收款账户
+        toAccount: '6222021234567890', // Platform receiving account
         amount: amountNum,
         currency: currency,
         reference: `DEPOSIT_${fiatOrder.id}`
       })
     }
 
-    // 记录SIEM日志
+    // Record SIEM log
     await SiemLogger.logEvent({
       userId: user.id,
       eventType: 'ADMIN_ACTION',
@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({
-      success: true,
-      message: '充值申请已提交',
+      successful: true,
+      message: 'Deposit request submitted',
       order: {
         id: fiatOrder.id,
         amount: fiatOrder.amount,

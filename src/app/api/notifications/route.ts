@@ -5,12 +5,12 @@ import { z } from 'zod'
 
 const createNotificationSchema = z.object({
   type: z.enum(['TRANSACTION', 'KYC', 'SECURITY', 'SYSTEM']),
-  title: z.string().min(1, '标题不能为空'),
-  message: z.string().min(1, '消息不能为空'),
+  title: z.string().min(1, 'Title cannot be empty'),
+  message: z.string().min(1, 'Message cannot be empty'),
   userId: z.string().optional()
 })
 
-// 获取用户通知列表
+// Get user notification list
 export async function GET(request: NextRequest) {
   try {
     const user = await getUserFromRequest(request)
@@ -32,18 +32,18 @@ export async function GET(request: NextRequest) {
     const unreadCount = await NotificationService.getUnreadCount(user.id)
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       notifications,
       unreadCount
     })
 
   } catch (error) {
-    console.error('获取通知失败:', error)
-    return NextResponse.json({ error: '获取通知失败' }, { status: 500 })
+    console.error('Failed to get notifications:', error)
+    return NextResponse.json({ error: 'Failed to get notifications' }, { status: 500 })
   }
 }
 
-// 创建通知（管理员功能）
+// Create notification (admin feature)
 export async function POST(request: NextRequest) {
   try {
     const user = await getUserFromRequest(request)
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { type, title, message, userId } = createNotificationSchema.parse(body)
 
-    // 如果指定了userId，发送给特定用户，否则发送给所有用户
+    // If userId is specified, send to specific user, otherwise send to all users
     if (userId) {
       const notification = await NotificationService.createNotification({
         userId,
@@ -64,22 +64,22 @@ export async function POST(request: NextRequest) {
       })
       
       return NextResponse.json({
-        success: true,
+        successful: true,
         notification
       })
     } else {
-      // 发送给所有用户
+      // Send to all users
       const notifications = await NotificationService.createSystemNotification(title, message)
 
       return NextResponse.json({
-        success: true,
-        message: `已向 ${notifications.length} 个用户发送通知`,
+        successful: true,
+        message: `Sent notification to ${notifications.length} users`,
         count: notifications.length
       })
     }
 
   } catch (error) {
-    console.error('创建通知失败:', error)
+    console.error('Failed to create notification:', error)
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -88,6 +88,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ error: '创建通知失败' }, { status: 500 })
+    return NextResponse.json({ error: 'creating notification failed' }, { status: 500 })
   }
 }

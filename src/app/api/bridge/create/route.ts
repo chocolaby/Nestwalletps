@@ -5,13 +5,13 @@ import { SiemLogger } from '@/lib/siem'
 import { z } from 'zod'
 
 const bridgeSchema = z.object({
-  fromChain: z.string().min(1, '请选择源链'),
-  toChain: z.string().min(1, '请选择目标链'),
-  amount: z.string().min(1, '请输入金额'),
-  tokenSymbol: z.string().min(1, '请选择代币'),
-  toAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, '请输入有效的地址')
+  fromChain: z.string().min(1, 'Please select source chain'),
+  toChain: z.string().min(1, 'Please select target chain'),
+  amount: z.string().min(1, 'Please enter amount'),
+  tokenSymbol: z.string().min(1, 'Please select token'),
+  toAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Please enter valid address')
 }).refine((data) => data.fromChain !== data.toChain, {
-  message: "源链和目标链不能相同",
+  message: "Source chain and target chain cannot be the same",
   path: ["toChain"],
 })
 
@@ -28,27 +28,27 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { fromChain, toChain, amount, tokenSymbol, toAddress } = bridgeSchema.parse(body)
 
-    // 验证金额
+    // Validate amount
     const amountNum = parseFloat(amount)
     if (amountNum <= 0) {
       return NextResponse.json(
-        { error: '金额必须大于0' },
+        { error: 'Amount must be greater than 0' },
         { status: 400 }
       )
     }
 
-    // 计算费用
+    // Calculate fees
     const feePercentage = fromChain === 'ethereum' ? 0.003 : 0.001
     const fee = Math.max(amountNum * feePercentage, 0.001)
     const netAmount = amountNum - fee
 
-    // 模拟桥接交易创建
+    // Simulate bridge transaction creation
     const bridgeTransaction = {
       id: crypto.randomUUID(),
       userId: user.id,
       fromChain,
       toChain,
-      fromAddress: '0x' + Math.random().toString(16).substr(2, 40), // 模拟地址
+      fromAddress: '0x' + Math.random().toString(16).substr(2, 40), // Simulated address
       toAddress,
       amount: amount,
       tokenSymbol,
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     }
 
-    // 这里应该保存到数据库，但由于没有BridgeTransaction表，我们使用Transaction表模拟
+    // Should save to database, but using Transaction table for simulation since BridgeTransaction table doesn't exist
     try {
       await prisma.transaction.create({
         data: {
@@ -73,10 +73,10 @@ export async function POST(request: NextRequest) {
         }
       })
     } catch (dbError) {
-      console.log('数据库保存失败，使用模拟模式:', dbError)
+      console.log('Database savefailed，using simulation mode:', dbError)
     }
 
-    // 记录SIEM日志
+    // Record SIEM log
     await SiemLogger.logEvent({
       userId: user.id,
       eventType: 'TRANSACTION',
@@ -94,10 +94,10 @@ export async function POST(request: NextRequest) {
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown'
     })
 
-    // 模拟异步处理
+    // Simulate async processing
     setTimeout(async () => {
       try {
-        // 模拟处理完成
+        // Simulate completion
         await SiemLogger.logEvent({
           userId: user.id,
           eventType: 'TRANSACTION',
@@ -109,14 +109,14 @@ export async function POST(request: NextRequest) {
           riskLevel: 'LOW'
         })
       } catch (error) {
-        console.log('模拟处理完成日志失败:', error)
+        console.log('Simulated completionlogfailed:', error)
       }
-    }, 30000) // 30秒后模拟完成
+    }, 30000) // Simulate completion after 30 seconds
 
     return NextResponse.json({
-      success: true,
+      successful: true,
       transaction: bridgeTransaction,
-      message: `桥接请求已提交，预计 ${bridgeTransaction.estimatedTime} 内完成`
+      message: `Bridge request submitted,estimated ${bridgeTransaction.estimatedTime} to complete`
     })
 
   } catch (error) {
@@ -138,10 +138,10 @@ export async function POST(request: NextRequest) {
 
 function getEstimatedTime(toChain: string): string {
   const timeMap: Record<string, string> = {
-    'ethereum': '10-15分钟',
-    'bsc': '3-5分钟',
-    'polygon': '2-3分钟',
-    'arbitrum': '1-2分钟'
+    'ethereum': '10-15 minutes',
+    'bsc': '3-5 minutes',
+    'polygon': '2-3 minutes',
+    'arbitrum': '1-2 minutes'
   }
-  return timeMap[toChain] || '5-10分钟'
+  return timeMap[toChain] || '5-10 minutes'
 }

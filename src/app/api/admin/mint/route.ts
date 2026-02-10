@@ -6,10 +6,10 @@ import { mintTokens } from '@/lib/contracts'
 import { z } from 'zod'
 
 const mintSchema = z.object({
-  contractAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, '合约地址格式无效'),
-  toAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, '接收地址格式无效'),
-  amount: z.string().min(1, '金额不能为空'),
-  reason: z.string().min(1, '原因不能为空')
+  contractAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid contract address format'),
+  toAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, 'Invalid recipient address format'),
+  amount: z.string().min(1, 'Amount cannot be empty'),
+  reason: z.string().min(1, 'Reason cannot be empty')
 })
 
 export async function POST(request: NextRequest) {
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     
     if (!user || user.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: '无权限' },
+        { error: 'No permission' },
         { status: 403 }
       )
     }
@@ -26,31 +26,31 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { contractAddress, toAddress, amount, reason } = mintSchema.parse(body)
 
-    // 验证金额
+    // Validate amount
     if (parseFloat(amount) <= 0) {
       return NextResponse.json(
-        { error: '金额必须大于0' },
+        { error: 'Amount must be greater than 0' },
         { status: 400 }
       )
     }
 
-    // 获取合约信息
+    // Get contract info
     const contract = await prisma.smartContract.findUnique({
       where: { address: contractAddress }
     })
 
     if (!contract) {
       return NextResponse.json(
-        { error: '合约不存在' },
+        { error: 'Contract does not exist' },
         { status: 404 }
       )
     }
 
-    // 使用部署者私钥进行铸造
+    // Use deployer private key for minting
     const deployerPrivateKey = process.env.DEPLOYER_PRIVATE_KEY || 
       '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
 
-    // 执行合约铸造
+    // Execute contract minting
     const mintResult = await mintTokens(
       contractAddress,
       toAddress,
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       deployerPrivateKey
     )
 
-    // 记录交易到数据库
+    // Record transaction to database
     const transaction = await prisma.transaction.create({
       data: {
         userId: user.id,
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         toAddress: toAddress,
         amount: amount,
         tokenAddress: contractAddress,
-        tokenSymbol: 'NEST', // 可以从合约获取
+        tokenSymbol: 'NEST', // Can be obtained from contract
         txHash: mintResult.txHash,
         status: 'CONFIRMED',
         gasUsed: mintResult.gasUsed,
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     await SiemLogger.logEvent({
       userId: user.id,
       eventType: 'ADMIN_ACTION',
@@ -92,8 +92,8 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({
-      success: true,
-      message: '代币铸造成功',
+      successful: true,
+      message: 'Token minted successfulfully',
       transaction: {
         id: transaction.id,
         txHash: mintResult.txHash,
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Mint失败' },
+      { error: error instanceof Error ? error.message : 'Mint failed' },
       { status: 500 }
     )
   }

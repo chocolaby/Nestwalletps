@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, password, role } = registerSchema.parse(body)
 
-    // 检查用户是否已存在
+    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email }
     })
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 创建新用户
+    // Create new user
     const hashedPassword = await hashPassword(password)
     const user = await prisma.user.create({
       data: {
@@ -44,29 +44,29 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // 生成JWT令牌
+    // Generate JWT token
     const token = generateToken({
       userId: user.id,
       email: user.email,
       role: user.role
     })
 
-    // 记录SIEM日志
+    // Record SIEM log
     const clientIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
     
     await SiemLogger.logEvent({
       userId: user.id,
       eventType: 'LOGIN',
-      details: { action: 'register', success: true },
+      details: { action: 'register', successful: true },
       riskLevel: 'LOW',
       ipAddress: clientIP,
       userAgent
     })
 
-    // 设置Cookie
+    // Set Cookie
     const response = NextResponse.json({
-      success: true,
+      successful: true,
       user
     })
 
